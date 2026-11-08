@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   var C = window.DEEPSLATE_CONFIG || {};
-  var KEY = "deepslate.v7";
+  var KEY = "deepslate.v8";
   var ACCENTS = { periwinkle: "#a594f9", green: "#3ddc97", blue: "#4aa8ff", orange: "#ffa94d" };
 
   function h(t, p) {
@@ -23,7 +23,7 @@
     name: "Crux", accent: "periwinkle", version: C.DEFAULT_VERSION || "1.21.11",
     mods: { "fps-boost": true, "zoom": true },
     servers: [{ name: "ArchMC", ip: "wss://mc.arch.lol" }, { name: "ZythMC", ip: "wss://play.zyth.me" }],
-    messages: [], pose: "Idle"
+    pose: "Idle"
   };
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -66,15 +66,6 @@
           h("p", { style: "font-size:12.5px;color:var(--muted);" }, m.desc)
         );
       }));
-    },
-    clips: function () { return h("div", { class: "card", style: "text-align:center;padding:48px;" }, h("h3", null, "No replay clips yet"), h("p", { style: "color:var(--muted);margin-top:6px;" }, "Press F9 in-game to capture highlights.")); },
-    social: function () {
-      var inp = h("input", { placeholder: "Send a message..." });
-      return h("div", { class: "card" },
-        h("h3", { style: "margin-bottom:12px;" }, "Messages"),
-        S.messages.map(function (m) { return h("p", { style: "margin-bottom:6px;" }, h("b", { style: "color:var(--accent);" }, m.from + ": "), m.text); }),
-        h("div", { style: "display:flex;gap:8px;margin-top:12px;" }, inp, h("button", { class: "btn primary", onclick: function () { if (!inp.value) return; S.messages.push({ from: S.name, text: inp.value }); inp.value = ""; save(); render(); } }, "Send"))
-      );
     },
     wardrobe: function () {
       var inp = h("input", { placeholder: "Minecraft username" });
