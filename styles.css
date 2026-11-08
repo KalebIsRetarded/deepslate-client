@@ -1,395 +1,913 @@
 :root {
-  --bg: #080a0d;
-  --surface: rgba(16, 20, 26, 0.78);
-  --surface-hover: rgba(24, 30, 39, 0.92);
+  --bg: #0b0b0e;
+  --panel: #131318;
+  --panel-2: #191920;
   --border: rgba(255, 255, 255, 0.08);
-  --border-bright: rgba(255, 255, 255, 0.16);
-  --text: #f1f5f9;
-  --muted: #8b9bb0;
-  --accent: #3ddc97;
-  --accent-glow: rgba(61, 220, 151, 0.28);
+  --border-hi: rgba(255, 255, 255, 0.16);
+  --text: #f3f4f6;
+  --muted: #8e929f;
+  --accent: #a594f9;
+  --accent-dark: #151226;
+  --green: #3ddc97;
   --font-display: 'Oxanium', sans-serif;
   --font-body: 'Manrope', sans-serif;
   --font-mono: 'DM Mono', monospace;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   min-height: 100vh;
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Ambient Chromium Glow Orbs */
-.ambient {
-  position: fixed;
-  width: 520px;
-  height: 520px;
-  border-radius: 50%;
-  filter: blur(130px);
-  opacity: 0.22;
-  pointer-events: none;
-  z-index: 0;
-}
-.ambient-one { top: -180px; left: 12%; background: var(--accent); }
-.ambient-two { bottom: -200px; right: 8%; background: #4aa8ff; }
-
-.app {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  min-height: 100vh;
-}
-
-/* Sidebar */
-.side {
-  width: 248px;
-  background: rgba(11, 14, 19, 0.88);
-  backdrop-filter: blur(20px);
-  border-right: 1px solid var(--border);
-  padding: 20px 14px;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  color: var(--text);
-  padding: 6px 10px 20px;
+/* Top Navbar */
+.topbar {
+  height: 58px;
+  padding: 0 24px;
+  background: rgba(11, 11, 14, 0.92);
+  backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
-  margin-bottom: 16px;
-}
-.brand-mark { width: 34px; height: 34px; image-rendering: pixelated; border-radius: 8px; }
-.brand-name { font-family: var(--font-display); font-weight: 800; font-size: 16px; letter-spacing: 0.06em; line-height: 1.1; }
-.brand-name small { display: block; font-family: var(--font-mono); font-size: 10px; color: var(--accent); font-weight: 500; margin-top: 2px; }
-
-.side-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--muted);
-  padding: 12px 12px 6px;
-}
-
-.side nav { display: flex; flex-direction: column; gap: 3px; }
-.side nav a {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 10px 12px;
-  border-radius: 10px;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-left, .topbar-right { display: flex; align-items: center; gap: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; font-weight: 800; font-size: 16px; }
+.brand-mark { width: 24px; height: 24px; image-rendering: pixelated; border-radius: 5px; }
+
+.topnav { display: flex; align-items: center; gap: 4px; }
+.topnav a {
   color: var(--muted);
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 600;
-  transition: all 0.16s ease;
+  padding: 7px 12px;
+  border-radius: 8px;
+  transition: 0.15s ease;
 }
-.side nav a svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.side nav a:hover { color: var(--text); background: rgba(255, 255, 255, 0.04); }
-.side nav a.active {
-  color: #fff;
-  background: linear-gradient(90deg, rgba(61, 220, 151, 0.16), rgba(61, 220, 151, 0.03));
-  border: 1px solid rgba(61, 220, 151, 0.25);
-}
-.side nav a.active svg { stroke: var(--accent); }
+.topnav a:hover { color: #fff; background: rgba(255,255,255,0.04); }
+.topnav a.active { color: #fff; background: var(--panel-2); }
 
-.side-bottom {
-  margin-top: auto;
-  padding: 14px 12px 4px;
-  border-top: 1px solid var(--border);
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 1.45;
-}
-.side-status {
-  display: flex;
+.icon-pill, .streak-pill, .profile-pill {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  height: 34px;
+  padding: 0 11px;
+  border-radius: 8px;
+  display: inline-flex;
   align-items: center;
   gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.profile-pill img { width: 20px; height: 20px; border-radius: 4px; image-rendering: pixelated; }
+
+.main-wrap { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+/* Chromium Perspective Grid Hero */
+.cr-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at 50% 45%, rgba(165, 148, 249, 0.22), transparent 60%),
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+    #0e0d15;
+  background-size: 100% 100%, 42px 42px, 42px 42px, 100% 100%;
+  padding: 58px 24px 48px;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.cr-float {
+  position: absolute;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(165,148,249,0.16), rgba(165,148,249,0.02));
+  border: 1px solid rgba(165,148,249,0.22);
+  pointer-events: none;
+}
+.cr-inst-label {
   font-family: var(--font-mono);
-  color: var(--text);
   font-size: 11px;
-  margin-bottom: 6px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
 }
-.status-light {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+
+/* Split PLAY Pill Button */
+.play-split {
+  display: inline-flex;
+  align-items: stretch;
   background: var(--accent);
-  box-shadow: 0 0 10px var(--accent);
+  color: var(--accent-dark);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(165, 148, 249, 0.32);
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
-.side-version { display: inline-block; margin-top: 8px; font-family: var(--font-mono); font-size: 10px; opacity: 0.7; }
+.play-split:hover { transform: translateY(-2px); filter: brightness(1.05); }
+.play-main {
+  border: none;
+  background: transparent;
+  color: inherit;
+  padding: 16px 42px;
+  cursor: pointer;
+  text-align: center;
+}
+.play-main strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+}
+.play-main span {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.78;
+  margin-top: 4px;
+}
+.play-drop {
+  border: none;
+  border-left: 1px solid rgba(0,0,0,0.15);
+  background: rgba(0,0,0,0.06);
+  color: inherit;
+  padding: 0 16px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+}
 
-/* Main Area */
-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.hero-sub { margin-top: 14px; font-size: 12.5px; color: var(--muted); }
+.hero-sub a { color: #cbd5e1; text-decoration: none; }
+.hero-sub a:hover { text-decoration: underline; }
+.hero-stats { margin-top: 10px; font-size: 12.5px; color: var(--muted); display: flex; justify-content: center; gap: 18px; }
+.hero-stats b { color: #fff; }
 
-.top {
-  height: 68px;
-  padding: 0 28px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(10, 13, 18, 0.65);
-  backdrop-filter: blur(16px);
+/* Partner / Top Servers Strip */
+.partner-bar {
+  background: linear-gradient(90deg, rgba(165,148,249,0.14), rgba(19,19,24,0.95));
+  border: 1px solid rgba(165,148,249,0.25);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.partner-left { display: flex; align-items: center; gap: 14px; }
+.partner-icon { width: 38px; height: 38px; border-radius: 9px; background: rgba(165,148,249,0.2); display: grid; place-items: center; font-size: 18px; }
+
+/* Home Bottom Grid: News + Live Players Sparkline */
+.home-bottom { display: grid; grid-template-columns: 1fr 290px; gap: 18px; align-items: start; }
+.news-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+.card:hover { border-color: var(--border-hi); }
+
+/* Mods Page */
+.mods-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.mod-featured {
+  background: linear-gradient(90deg, rgba(165,148,249,0.16), var(--panel));
+  border: 1px solid rgba(165,148,249,0.28);
+  border-radius: 14px;
+  padding: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  margin-bottom: 16px;
 }
-.top-heading .eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; color: var(--accent); display: block; }
-.top-heading h1 { font-family: var(--font-display); font-size: 20px; font-weight: 700; }
-
-.top-right { display: flex; align-items: center; gap: 10px; }
-.pill {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  background: rgba(61, 220, 151, 0.12);
-  color: var(--accent);
-  border: 1px solid rgba(61, 220, 151, 0.28);
-}
-
-.command-hint {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--surface);
-  border: 1px solid var(--border-bright);
-  color: var(--muted);
-  padding: 5px 10px;
-  border-radius: 8px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  cursor: pointer;
-}
-.command-hint:hover { color: #fff; border-color: var(--accent); }
-
-.view { padding: 28px; max-width: 1140px; width: 100%; margin: 0 auto; flex: 1; }
-
-/* Chromium-Style Hero Banner */
-.hero {
-  position: relative;
-  overflow: hidden;
-  background: radial-gradient(circle at 85% 20%, rgba(61, 220, 151, 0.18), transparent 55%),
-              linear-gradient(135deg, rgba(20, 26, 35, 0.92), rgba(11, 14, 19, 0.96));
-  border: 1px solid var(--border-bright);
-  border-radius: 20px;
-  padding: 36px 32px;
-  text-align: center;
-  margin-bottom: 22px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
-}
-.hero .logo { margin-bottom: 12px; }
-.hero h2 { font-family: var(--font-display); font-size: 38px; font-weight: 800; letter-spacing: 0.08em; }
-.hero h2 span { color: var(--accent); }
-.hero p { color: var(--muted); font-size: 14.5px; max-width: 520px; margin: 8px auto 22px; }
-
-/* Signature Chromium Glowing Play Button */
-.play {
-  background: var(--accent);
-  color: #06110b;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 17px;
-  letter-spacing: 0.08em;
-  padding: 15px 44px;
-  border: none;
-  border-radius: 14px;
-  cursor: pointer;
-  box-shadow: 0 0 32px var(--accent-glow), 0 8px 20px rgba(0, 0, 0, 0.4);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-}
-.play:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 0 44px var(--accent-glow); }
-.play:active { transform: translateY(0); }
-
-.hero-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 22px;
-}
-
-/* Cards, Grids & Lists */
-.grid { display: grid; gap: 14px; }
-.g2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.g3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-
-.card {
-  background: var(--surface);
-  backdrop-filter: blur(14px);
+.filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.chip-btn {
+  background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  color: var(--muted);
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
 }
-.card:hover { border-color: var(--border-bright); background: var(--surface-hover); }
-
-.stat b { display: block; font-family: var(--font-display); font-size: 24px; color: #fff; margin-bottom: 2px; }
-.stat span { font-size: 12.5px; color: var(--muted); }
-
-.list { display: flex; flex-direction: column; gap: 9px; }
-.row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--surface);
+.chip-btn.active { background: #fff; color: #0b0b0e; border-color: #fff; }
+.mods-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 14px; }
+.mod-card {
+  background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 13px 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
 }
-.row .grow { flex: 1; min-width: 0; }
-.row b { display: block; font-size: 14px; }
-.row small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.mod-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.mod-icon { width: 42px; height: 42px; border-radius: 10px; background: var(--panel-2); display: grid; place-items: center; font-size: 20px; flex-shrink: 0; }
 
-/* Inputs, Selects, Buttons, Chips */
-input, select {
-  background: rgba(8, 10, 14, 0.85);
-  border: 1px solid var(--border-bright);
-  color: var(--text);
-  padding: 9px 12px;
-  border-radius: 9px;
-  font-family: var(--font-body);
-  font-size: 13px;
-  outline: none;
-}
-input:focus, select:focus { border-color: var(--accent); }
-
+/* Buttons & Inputs */
 .btn {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-bright);
+  background: var(--panel-2);
+  border: 1px solid var(--border-hi);
   color: var(--text);
-  padding: 9px 15px;
-  border-radius: 9px;
+  padding: 7px 13px;
+  border-radius: 8px;
   font-family: var(--font-body);
+  font-size: 12.5px;
   font-weight: 600;
-  font-size: 13px;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-  transition: all 0.15s ease;
 }
-.btn:hover { background: rgba(255, 255, 255, 0.12); }
-.btn.sm { padding: 6px 11px; font-size: 12px; border-radius: 8px; }
-.btn.primary { background: var(--accent); color: #06110b; border-color: transparent; font-weight: 700; }
-.btn.primary:hover { filter: brightness(1.08); }
+.btn:hover { background: #23232c; }
+.btn.primary { background: var(--accent); color: var(--accent-dark); border-color: transparent; font-weight: 700; }
+.btn.added { background: rgba(61, 220, 151, 0.14); color: var(--green); border-color: rgba(61, 220, 151, 0.3); }
 
-.chip {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 4px 9px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--muted);
-}
-
-.banner {
-  background: rgba(255, 169, 77, 0.1);
-  border: 1px solid rgba(255, 169, 77, 0.3);
-  color: #ffd8a8;
-  padding: 12px 16px;
-  border-radius: 12px;
+input, select {
+  background: var(--panel);
+  border: 1px solid var(--border-hi);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-family: var(--font-body);
   font-size: 13px;
-  margin-bottom: 18px;
+  outline: none;
 }
 
-.empty {
-  text-align: center;
-  padding: 28px;
-  border: 1px dashed var(--border-bright);
-  border-radius: 12px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-/* Modals & Fullscreen Game Overlay */
-.modal-bg {
-  position: fixed;
-  inset: 0;
-  background: rgba(4, 6, 9, 0.78);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-.modal {
-  background: #10151c;
-  border: 1px solid var(--border-bright);
-  border-radius: 16px;
-  padding: 24px;
-  max-width: 460px;
-  width: 100%;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
-}
-.modal h3 { font-family: var(--font-display); margin-bottom: 10px; }
-.modal p { color: var(--muted); font-size: 13.5px; line-height: 1.55; margin-bottom: 12px; }
-.modal input { width: 100%; }
-.modal .acts { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
-
-.game {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  z-index: 2000;
+/* Wardrobe, Social & Settings Split Layouts */
+.wardrobe-layout { display: grid; grid-template-columns: 1fr 320px; gap: 18px; min-height: 540px; }
+.wardrobe-stage {
+  background: radial-gradient(circle at 50% 45%, #191923, #0d0d11);
+  border: 1px solid var(--border);
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
-}
-.game .bar {
-  height: 44px;
-  background: #0d1117;
-  border-bottom: 1px solid var(--border);
-  padding: 0 14px;
-  display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 13px;
+  justify-content: space-between;
+  padding: 24px;
 }
-.game .bar b { flex: 1; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
-.game iframe { flex: 1; width: 100%; border: none; }
+.pose-bar { display: flex; gap: 6px; background: var(--panel); padding: 5px; border-radius: 999px; border: 1px solid var(--border); }
+.pose-btn { background: transparent; border: none; color: var(--muted); padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.pose-btn.active { background: #fff; color: #0b0b0e; }
 
-/* Toasts & Footer */
-#toasts { position: fixed; bottom: 20px; left: 20px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; }
-.toast {
-  background: #131922;
+.social-layout { display: grid; grid-template-columns: 280px 1fr; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); min-height: 520px; overflow: hidden; }
+.social-side { border-right: 1px solid var(--border); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.social-main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+
+.settings-layout { display: grid; grid-template-columns: 230px 1fr; gap: 24px; }
+.settings-nav { display: flex; flex-direction: column; gap: 4px; }
+.settings-nav button {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.settings-nav button.active { background: var(--panel-2); color: #fff; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.setting-row:last-child { border-bottom: none; }
+
+/* Modals, Game Overlay & Toasts */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.modal { background: var(--panel); border: 1px solid var(--border-hi); border-radius: 14px; padding: 22px; max-width: 440px; width: 100%; }
+.game { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; flex-direction: column; }
+.game .bar { height: 42px; background: #111116; border-bottom: 1px solid var(--border); padding: 0 14px; display: flex; align-items: center; gap: 10px; }
 Use code with caution.
-border: 1px solid var(--border-bright);
-border-left: 3px solid var(--accent);
-color: #fff;
-padding: 10px 14px;
-border-radius: 10px;
-font-size: 13px;
-box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+.game iframe { flex: 1; width: 100%; border: none; }
+#toasts { position: fixed; bottom: 18px; right: 18px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; }
+.toast { background: var(--panel-2); border: 1px solid var(--border-hi); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 10px; font-size: 13px; }
+@media (max-width: 900px) {
+.home-bottom, .wardrobe-layout, .social-layout, .settings-layout { grid-template-columns: 1fr; }
+.news-grid { grid-template-columns: 1fr; }
+.topnav { overflow-x: auto; }
 }
-.foot {
-padding: 18px 28px;
-border-top: 1px solid var(--border);
-display: flex;
-align-items: center;
-gap: 12px;
-font-family: var(--font-mono);
-font-size: 11px;
-color: var(--muted);
+
+---
+
+### 3. Replace `app.js` (Fixed Indexes + All 6 Chromium Screens)
+This fixes the blank-screen bug and builds out **Home**, **Mods** (with search, category pills, and `+ Add` / `✓ Added`), **Clips**, **Social**, **Wardrobe** (with pose switcher and skin import), and **Settings** (with `My account`, `Appearance`, `Game & sync`, and `Your data`).
+
+```javascript
+/* Deepslate Client - Chromium-Style Interface & Launcher */
+(function () {
+  "use strict";
+  var C = window.DEEPSLATE_CONFIG || {};
+  var KEY = "deepslate.v5";
+  var ACCENTS = { periwinkle: "#a594f9", green: "#3ddc97", blue: "#4aa8ff", orange: "#ffa94d" };
+
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+  function h(tag, props) {
+    var e = document.createElement(tag), kids = Array.prototype.slice.call(arguments, 2);
+    Object.keys(props || {}).forEach(function (k) {
+      var v = props[k];
+      if (k === "class") e.className = v;
+      else if (k.indexOf("on") === 0) e.addEventListener(k.slice(2), v);
+      else if (k === "checked" || k === "value" || k === "disabled") e[k] = v;
+      else if (v === true) e.setAttribute(k, "");
+      else if (v !== false && v != null) e.setAttribute(k, v);
+    });
+    (function add(list) {
+      list.forEach(function (c) {
+        if (Array.isArray(c)) return add(c);
+        if (c == null || c === false) return;
+        e.append(c.nodeType ? c : document.createTextNode(String(c)));
+      });
+    })(kids);
+    return e;
+  }
+
+  function toast(msg) {
+    var box = document.getElementById("toasts");
+    if (!box) return;
+    var t = h("div", { class: "toast" }, msg);
+    box.append(t);
+    setTimeout(function () { t.remove(); }, 3000);
+  }
+
+  function copy(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast("Copied: " + text); });
+    } else {
+      toast("IP: " + text);
+    }
+  }
+
+  function defaults() {
+    var i = {
+      id: uid(),
+      name: "My instance 1",
+      version: C.DEFAULT_VERSION || C.VERSION || "1.21.11",
+      mods: { "fps-boost": true, "zoom": true }
+    };
+    return {
+      instances: [i],
+      active: i.id,
+      servers: (C.FEATURED_SERVERS || [
+        { name: "ArchMC Network", ip: "wss://mc.arch.lol", version: "1.8 - 1.21" },
+        { name: "ZythMC Practice", ip: "wss://play.zyth.me", version: "1.8.8" }
+      ]).map(function (s) {
+        return { id: uid(), name: s.name, ip: s.ip, version: s.version || "1.8 - 1.21" };
+      }),
+      friends: [
+        { name: "maz_35", status: "Online · Lobby" },
+        { name: "DeepslateBot", status: "In-Game · Bedwars" }
+      ],
+      messages: [],
+      streak: 1,
+      modFilter: "All",
+      modSearch: "",
+      wardrobePose: "Idle",
+      wardrobeModel: "Classic",
+      settingsTab: "My account",
+      profile: { name: "Crux", email: "", status: "", cape: "deepslate" },
+      settings: { accent: "periwinkle", launchMode: "inline", performanceMode: false }
+    };
+  }
+
+  var S = (function () {
+    var d = defaults();
+    try {
+      var raw = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (raw && typeof raw === "object") {
+        Object.keys(d).forEach(function (k) { if (raw[k] != null) d[k] = raw[k]; });
+        d.settings = Object.assign(defaults().settings, raw.settings || {});
+        d.profile = Object.assign(defaults().profile, raw.profile || {});
+      }
+    } catch (e) {}
+    if (!Array.isArray(d.instances) || !d.instances.length) {
+      var x = defaults(); d.instances = x.instances; d.active = x.active;
+    }
+    if (!d.instances.some(function (i) { return i.id === d.active; })) {
+      d.active = d.instances[0].id;
+    }
+    return d;
+  })();
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  }
+
+  function inst() {
+    var found = S.instances.filter(function (i) { return i.id === S.active; });
+    return found.length ? found[0] : S.instances[0];
+  }
+
+  function resolveGameUrl(verId) {
+    var id = verId || inst().version || C.DEFAULT_VERSION || C.VERSION;
+    var found = (C.VERSIONS || []).filter(function (v) { return v.id === id; });
+    var raw = ((found.length && found[0].url) || C.GAME_URL || "").trim();
+    if (!raw) return null;
+    try { return new URL(raw, location.href); } catch (e) { return null; }
+  }
+
+  function launch(opts) {
+    opts = opts || {};
+    var verId = opts.version || inst().version || C.DEFAULT_VERSION || "1.21.11";
+    var u = resolveGameUrl(verId);
+    if (!u) {
+      var close = function () { bg.remove(); };
+      var bg = h("div", { class: "modal-bg", onclick: function (e) { if (e.target === bg) close(); } },
+        h("div", { class: "modal" },
+          h("h3", { style: "margin-bottom:8px;" }, "Engine Ready · Waiting for Game Files"),
+          h("p", { style: "color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:14px;" },
+            "Instance ", h("b", { style: "color:#fff;" }, inst().name), " (" + verId + ") is configured. Upload your Eaglercraft/WASM build into ",
+            h("code", null, "/game/index.html"), " and set ", h("code", null, "GAME_URL"), " in ", h("code", null, "config.js"), " to boot directly in-browser."
+          ),
+          h("div", { style: "text-align:right;" }, h("button", { class: "btn primary", onclick: close }, "OK"))
+        )
+      );
+      document.getElementById("overlay").append(bg);
+      return;
+    }
+
+    var m = inst().mods || {};
+    var activeMods = (C.MODS || []).filter(function (x) { return m[x.id]; }).map(function (x) { return x.id; });
+    u.searchParams.set("deepslateVersion", verId);
+    u.searchParams.set("username", S.profile.name || "Player");
+    if (activeMods.length) u.searchParams.set("deepslateMods", activeMods.join(","));
+    if (opts.serverIp) u.searchParams.set("server", opts.serverIp);
+
+    var start = Date.now();
+    var bubble = h("div", {
+      style: "position:fixed;bottom:20px;right:20px;z-index:9999;background:#131318;border:1px solid rgba(165,148,249,0.4);padding:12px 16px;border-radius:12px;display:flex;align-items:center;gap:12px;box-shadow:0 12px 32px rgba(0,0,0,.6);font-size:13px;"
+    },
+      h("span", { style: "width:9px;height:9px;border-radius:50%;background:var(--accent);" }),
+      h("div", null,
+        h("b", { style: "display:block;" }, "Launching " + inst().name),
+        h("small", { id: "dsTimer", style: "color:var(--muted);" }, "Starting engine... 0.0s")
+      )
+    );
+    document.body.append(bubble);
+
+    var iv = setInterval(function () {
+      var el = document.getElementById("dsTimer");
+      if (el) el.textContent = "Loading " + activeMods.length + " mods... " + ((Date.now() - start) / 1000).toFixed(1) + "s";
+    }, 100);
+
+    setTimeout(function () {
+      clearInterval(iv);
+      bubble.remove();
+      if (S.settings.launchMode === "tab") {
+        window.open(u.href, "_blank", "noopener");
+      } else {
+        var ov = document.getElementById("overlay");
+        var frame = h("iframe", { src: u.href, allow: "fullscreen; autoplay; gamepad; pointer-lock", allowfullscreen: true });
+        var g = h("div", { class: "game" },
+          h("div", { class: "bar" },
+            h("button", { class: "btn", onclick: function () { g.remove(); } }, "← Exit"),
+            h("b", { style: "flex:1;font-size:12px;color:var(--muted);" }, "Deepslate " + verId + " · " + inst().name),
+            h("button", { class: "btn", onclick: function () { if (g.requestFullscreen) g.requestFullscreen(); } }, "Fullscreen")
+          ),
+          frame
+        );
+        ov.append(g);
+      }
+    }, 900);
+  }
+
+  /* ---------- PAGES ---------- */
+  var pages = {};
+
+  pages.home = function () {
+    var activeInst = inst();
+    var modCount = Object.keys(activeInst.mods || {}).filter(function (k) { return activeInst.mods[k]; }).length;
+    var topServer = S.servers[0] || { ip: "wss://mc.arch.lol" };
+
+    function openInstanceMenu() {
+      var close = function () { bg.remove(); };
+      var nameIn = h("input", { type: "text", placeholder: "New instance name...", style: "flex:1;" });
+      var verSel = h("select", null, (C.VERSIONS || [{ id: "1.21.11", label: "1.21.11" }]).map(function (v) {
+        return h("option", { value: v.id }, v.label);
+      }));
+      var bg = h("div", { class: "modal-bg", onclick: function (e) { if (e.target === bg) close(); } },
+        h("div", { class: "modal" },
+          h("h3", { style: "margin-bottom:12px;" }, "Switch or Create Instance"),
+          h("div", { style: "display:flex;flex-direction:column;gap:8px;margin-bottom:14px;" },
+            S.instances.map(function (item) {
+              var isSel = item.id === S.active;
+              return h("div", {
+                style: "display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;background:var(--panel-2);border:1px solid " + (isSel ? "var(--accent)" : "var(--border)") + ";cursor:pointer;",
+                onclick: function () { S.active = item.id; save(); close(); render(); }
+              },
+                h("div", null, h("b", null, item.name), h("small", { style: "display:block;color:var(--muted);" }, "Version " + item.version)),
+                isSel ? h("span", { style: "color:var(--accent);font-size:12px;font-weight:700;" }, "ACTIVE") : null
+              );
+            })
+          ),
+          h("div", { style: "display:flex;gap:8px;" },
+            nameIn, verSel,
+            h("button", {
+              class: "btn primary",
+              onclick: function () {
+                if (!nameIn.value.trim()) return;
+                var n = { id: uid(), name: nameIn.value.trim(), version: verSel.value, mods: { "fps-boost": true } };
+                S.instances.push(n); S.active = n.id; save(); close(); render();
+              }
+            }, "+ Add")
+          )
+        )
+      );
+      document.getElementById("overlay").append(bg);
+    }
+
+    return h("div", null,
+      h("section", { class: "cr-hero" },
+h("div", { class: "cr-float", style: "width:95px;height:95px;top:24px;left:6%;transform:rotate(-12deg);" }),
+h("div", { class: "cr-float", style: "width:70px;height:70px;bottom:28px;left:18%;transform:rotate(14deg);" }),
+h("div", { class: "cr-float", style: "width:110px;height:110px;top:32px;right:8%;transform:rotate(16deg);" }),
+h("div", { class: "cr-inst-label" }, activeInst.name),
+h("div", { class: "play-split" },
+h("button", { class: "play-main", onclick: function () { launch(); } },
+h("strong", null, "PLAY " + (activeInst.version || "1.21.11")),
+h("span", null, "STANDARD ENGINE · READY")
+),
+h("button", { class: "play-drop", onclick: openInstanceMenu, title: "Switch instance or version" }, "⌄")
+),
+h("div", { class: "hero-sub" },
+modCount + " mods on · ",
+h("a", { href: "#/mods" }, "Manage mods"),
+"   ·   ",
+h("a", { href: "#", onclick: function (e) { e.preventDefault(); launch({ serverIp: topServer.ip }); } }, "Rejoin " + topServer.ip)
+),
+h("div", { class: "hero-stats" },
+h("span", null, h("b", null, "27"), " playing right now"),
+h("span", null, h("b", null, "1,000"), " in the last 24 hours")
+)
+),
+h("div", { class: "partner-bar" },
+h("div", { class: "partner-left" },
+h("div", { class: "partner-icon" }, "🗄️"),
+h("div", null,
+h("b", { style: "display:block;font-size:14px;" }, "Top servers"),
+h("small", { style: "color:var(--muted);" }, "Featured community servers ready for one-click join.")
+)
+),
+h("a", { class: "btn", href: "#/servers" }, "Browse servers")
+),
+h("div", { class: "home-bottom" },
+h("div", null,
+h("h3", { style: "font-size:15px;" }, "Recent news"),
+h("div", { class: "news-grid" },
+h("div", { class: "card" },
+h("small", { style: "color:var(--muted);" }, "Nov 8"),
+h("b", { style: "display:block;margin:6px 0;" }, "Chromium-style UI"),
+h("p", { style: "font-size:12.5px;color:var(--muted);line-height:1.45;" }, "New top navigation, instance switcher, mod browser, and 3D wardrobe.")
+),
+h("div", { class: "card" },
+h("small", { style: "color:var(--muted);" }, "Nov 5"),
+h("b", { style: "display:block;margin:6px 0;" }, "Offline bundle export"),
+h("p", { style: "font-size:12.5px;color:var(--muted);line-height:1.45;" }, "Save a standalone HTML snapshot of your mods and servers in Settings.")
+),
+h("div", { class: "card" },
+h("small", { style: "color:var(--muted);" }, "Nov 1"),
+h("b", { style: "display:block;margin:6px 0;" }, "Sodium & HUD presets"),
+h("p", { style: "font-size:12.5px;color:var(--muted);line-height:1.45;" }, "Toggle FPS Boost, Keystrokes, Zoom, and Hitboxes per instance.")
+)
+)
+),
+h("div", { class: "card" },
+h("div", { style: "display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;" },
+h("div", null, h("b", null, "Live players"), h("small", { style: "display:block;color:var(--muted);" }, "In Deepslate right now")),
+h("span", { style: "font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--green);" }, "27")
+),
+h("svg", { viewBox: "0 0 240 64", style: "width:100%;height:64px;overflow:visible;" },
+h("polyline", {
+fill: "none",
+stroke: "#3ddc97",
+"stroke-width": "2.5",
+points: "0,54 30,52 60,48 90,50 120,34 145,44 170,18 195,38 220,24 240,14"
+})
+)
+)
+)
+);
+};
+pages.mods = function () {
+var activeInst = inst();
+activeInst.mods = activeInst.mods || {};
+var cats = ["All", "Performance", "Visual", "HUD", "PvP", "Utility"];
+var allMods = C.MODS || [];
+var filtered = allMods.filter(function (m) {
+var catOk = S.modFilter === "All" || (m.category || "").toLowerCase() === S.modFilter.toLowerCase();
+var qOk = !S.modSearch || m.name.toLowerCase().indexOf(S.modSearch.toLowerCase()) !== -1;
+return catOk && qOk;
+});
+var instSel = h("select", {
+onchange: function () { S.active = instSel.value; save(); render(); }
+}, S.instances.map(function (i) {
+return h("option", { value: i.id, selected: i.id === S.active }, i.name);
+}));
+var searchIn = h("input", {
+type: "text",
+value: S.modSearch,
+placeholder: "Search " + allMods.length + " mods...",
+oninput: function () { S.modSearch = searchIn.value; render(); }
+});
+return h("div", null,
+h("div", { class: "mods-header" },
+h("h2", { style: "font-size:18px;" }, "Browse mods"),
+h("div", { style: "display:flex;align-items:center;gap:10px;" },
+h("span", { style: "font-size:12.5px;color:var(--muted);" }, "Adding to"),
+instSel
+)
+),
+h("div", { class: "mod-featured" },
+h("div", { style: "display:flex;align-items:center;gap:16px;" },
+h("div", { class: "mod-icon", style: "width:54px;height:54px;font-size:26px;" }, "✨"),
+h("div", null,
+h("b", { style: "font-size:16px;" }, "Deepslate Visuals "),
+h("span", { style: "font-size:11px;background:rgba(165,148,249,0.2);color:var(--accent);padding:2px 7px;border-radius:5px;" }, "Official"),
+h("p", { style: "font-size:13px;color:var(--muted);margin-top:4px;" }, "Custom skies, glass armor, smooth HUD, motion blur, and Sodium renderer tweaks.")
+)
+),
+h("button", {
+class: "btn primary",
+onclick: function () {
+activeInst.mods["fps-boost"] = true;
+activeInst.mods["fullbright"] = true;
+save(); toast("Added Deepslate Visuals to " + activeInst.name); render();
 }
-.foot-divider { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
-.foot-spacer { flex: 1; }
-.icon-btn.menu { display: none; background: none; border: 1px solid var(--border); color: #fff; padding: 7px; border-radius: 8px; cursor: pointer; }
-.icon-btn.menu svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
-@media (max-width: 820px) {
-.side { position: fixed; inset: 0 auto 0 0; z-index: 900; transform: translateX(-100%); transition: transform 0.2s ease; }
-.side.open { transform: translateX(0); }
-.scrim { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 899; display: none; }
-.scrim.open { display: block; }
-.icon-btn.menu { display: inline-flex; }
+}, "+ Add to " + activeInst.name)
+),
+h("div", { class: "filter-row" },
+searchIn,
+cats.map(function (c) {
+return h("button", {
+class: "chip-btn" + (S.modFilter === c ? " active" : ""),
+onclick: function () { S.modFilter = c; render(); }
+}, c);
+})
+),
+h("div", { class: "mods-grid" }, filtered.map(function (m) {
+var added = !!activeInst.mods[m.id];
+return h("div", { class: "mod-card" },
+h("div", null,
+h("div", { class: "mod-top" },
+h("div", { style: "display:flex;gap:11px;align-items:center;" },
+h("div", { class: "mod-icon" }, "🧩"),
+h("div", null,
+h("b", { style: "font-size:14px;" }, m.name),
+h("small", { style: "display:block;color:var(--muted);font-size:11.5px;" }, "by Deepslate · " + m.category)
+)
+),
+h("button", {
+class: "btn " + (added ? "added" : ""),
+onclick: function () {
+activeInst.mods[m.id] = !added;
+save(); render();
 }
+}, added ? "✓ Added" : "+ Add")
+),
+h("p", { style: "font-size:12.5px;color:var(--muted);line-height:1.45;margin-top:10px;" }, m.desc)
+)
+);
+}))
+);
+};
+pages.clips = function () {
+return h("div", { class: "card", style: "text-align:center;padding:56px 24px;" },
+h("div", { style: "font-size:34px;margin-bottom:10px;" }, "🎬"),
+h("h3", { style: "margin-bottom:6px;" }, "No replay clips yet"),
+h("p", { style: "color:var(--muted);font-size:13.5px;max-width:420px;margin:0 auto 16px;" },
+"Press F9 while in-game with Deepslate Replay enabled to capture highlights directly in your browser."
+),
+h("button", { class: "btn primary", onclick: function () { launch(); } }, "Launch Game")
+);
+};
+pages.social = function () {
+var msgIn = h("input", { type: "text", placeholder: "Send a message...", style: "flex:1;" });
+function sendMsg() {
+if (!msgIn.value.trim()) return;
+S.messages.push({ from: S.profile.name, text: msgIn.value.trim(), t: new Date().toLocaleTimeString() });
+msgIn.value = "";
+save(); render();
+}
+return h("div", { class: "social-layout" },
+h("div", { class: "social-side" },
+h("b", { style: "font-size:15px;" }, "Messages"),
+h("input", { type: "text", placeholder: "Search chats..." }),
+h("div", { style: "display:flex;flex-direction:column;gap:8px;margin-top:6px;" },
+S.friends.map(function (f) {
+return h("div", { style: "padding:9px 10px;border-radius:8px;background:var(--panel-2);" },
+h("b", { style: "font-size:13px;display:block;" }, f.name),
+h("small", { style: "color:var(--green);font-size:11px;" }, f.status)
+);
+})
+)
+),
+h("div", { class: "social-main" },
+S.messages.length ? h("div", { style: "width:100%;max-width:480px;text-align:left;display:flex;flex-direction:column;gap:8px;margin-bottom:16px;" },
+S.messages.map(function (m) {
+return h("div", { class: "card", style: "padding:10px 14px;" },
+h("b", { style: "font-size:12px;color:var(--accent);" }, m.from + " · " + m.t),
+h("p", { style: "font-size:13px;margin-top:3px;" }, m.text)
+);
+})
+) : h("div", { style: "margin-bottom:18px;" },
+h("div", { style: "font-size:28px;margin-bottom:8px;" }, "💬"),
+h("b", { style: "display:block;margin-bottom:4px;" }, "Your messages"),
+h("small", { style: "color:var(--muted);" }, "Pick a chat, or start one with a friend.")
+),
+h("div", { style: "display:flex;gap:8px;width:100%;max-width:440px;" },
+msgIn,
+h("button", { class: "btn primary", onclick: sendMsg }, "New message")
+)
+)
+);
+};
+pages.wardrobe = function () {
+var poses = ["Idle", "Walk", "Run", "Wave", "Crouch", "Dance"];
+var importIn = h("input", { type: "text", placeholder: "Minecraft username", style: "flex:1;" });
+var skinUrl = "mc-heads.net" + encodeURIComponent(S.profile.name || "Steve") + "/180";
+return h("div", { class: "wardrobe-layout" },
+h("div", { class: "wardrobe-stage" },
+h("span", { style: "background:rgba(0,0,0,0.5);padding:4px 12px;border-radius:6px;font-weight:700;font-size:13px;" }, S.profile.name),
+h("img", { src: skinUrl, alt: "Skin", style: "height:240px;image-rendering:pixelated;" }),
+h("div", { class: "pose-bar" }, poses.map(function (p) {
+return h("button", {
+class: "pose-btn" + (S.wardrobePose === p ? " active" : ""),
+onclick: function () { S.wardrobePose = p; render(); }
+}, p);
+}))
+),
+h("div", { class: "card", style: "display:flex;flex-direction:column;gap:16px;" },
+h("div", { style: "display:flex;gap:14px;border-bottom:1px solid var(--border);padding-bottom:10px;" },
+h("b", { style: "border-bottom:2px solid var(--accent);padding-bottom:8px;" }, "Skin"),
+h("span", { style: "color:var(--muted);" }, "Cape (" + S.profile.cape + ")")
+),
+h("div", null,
+h("small", { style: "font-family:var(--font-mono);color:var(--muted);display:block;margin-bottom:6px;" }, "IMPORT FROM MINECRAFT"),
+h("div", { style: "display:flex;gap:8px;" },
+importIn,
+h("button", {
+class: "btn",
+onclick: function () {
+if (!importIn.value.trim()) return;
+S.profile.name = importIn.value.trim();
+save(); syncTopbar(); toast("Imported skin for " + S.profile.name); render();
+}
+}, "Import")
+)
+),
+h("div", null,
+h("small", { style: "font-family:var(--font-mono);color:var(--muted);display:block;margin-bottom:6px;" }, "MODEL"),
+h("div", { style: "display:grid;grid-template-columns:1fr 1fr;gap:8px;" },
+["Classic", "Slim"].map(function (m) {
+var act = S.wardrobeModel === m;
+return h("button", {
+class: "btn",
+style: "justify-content:center;border-color:" + (act ? "var(--accent)" : "var(--border)") + ";",
+onclick: function () { S.wardrobeModel = m; save(); render(); }
+}, m);
+})
+)
+),
+h("div", null,
+h("small", { style: "font-family:var(--font-mono);color:var(--muted);display:block;margin-bottom:6px;" }, "CAPE PRESET"),
+h("select", {
+style: "width:100%;",
+onchange: function (e) { S.profile.cape = e.target.value; save(); toast("Cape updated"); render(); }
+}, ["deepslate", "chromium", "migrator", "emerald", "none"].map(function (c) {
+return h("option", { value: c, selected: S.profile.cape === c }, c.toUpperCase());
+}))
+)
+)
+);
+};
+pages.servers = function () {
+var nameIn = h("input", { type: "text", placeholder: "Server name" });
+var ipIn = h("input", { type: "text", placeholder: "Server address (wss://...)" });
+return h("div", null,
+h("div", { class: "card", style: "display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;" },
+nameIn, ipIn,
+h("button", {
+class: "btn primary",
+onclick: function () {
+if (!ipIn.value.trim()) return;
+S.servers.unshift({ id: uid(), name: nameIn.value.trim() || ipIn.value.trim(), ip: ipIn.value.trim(), version: "1.8 - 1.21" });
+save(); render();
+}
+}, "+ Add Server")
+),
+h("div", { style: "display:flex;flex-direction:column;gap:10px;" }, S.servers.map(function (srv) {
+return h("div", { class: "card", style: "display:flex;align-items:center;justify-content:space-between;gap:12px;" },
+h("div", null, h("b", null, srv.name), h("small", { style: "display:block;color:var(--muted);" }, srv.ip + " · " + srv.version)),
+h("div", { style: "display:flex;gap:8px;" },
+h("button", { class: "btn", onclick: function () { copy(srv.ip); } }, "Copy"),
+h("button", { class: "btn primary", onclick: function () { launch({ serverIp: srv.ip }); } }, "▶ Join")
+)
+);
+}))
+);
+};
+pages.settings = function () {
+var tabs = ["My account", "Appearance", "Game & sync", "Your data"];
+var nameIn = h("input", { type: "text", value: S.profile.name });
+return h("div", { class: "settings-layout" },
+h("div", { class: "settings-nav" },
+tabs.map(function (t) {
+return h("button", {
+class: S.settingsTab === t ? "active" : "",
+onclick: function () { S.settingsTab = t; render(); }
+}, t);
+})
+),
+h("div", { class: "card" },
+h("h3", { style: "margin-bottom:14px;" }, S.settingsTab),
+h("div", { class: "setting-row" },
+h("div", null, h("b", null, "Username"), h("small", { style: "display:block;color:var(--muted);" }, "Shown in-game and in Wardrobe")),
+h("div", { style: "display:flex;gap:8px;" },
+nameIn,
+h("button", { class: "btn", onclick: function () { S.profile.name = nameIn.value.trim() || "Player"; save(); syncTopbar(); toast("Username saved"); } }, "Change")
+)
+),
+h("div", { class: "setting-row" },
+h("div", null, h("b", null, "Accent Color"), h("small", { style: "display:block;color:var(--muted);" }, "Chromium Periwinkle or Deepslate Emerald")),
+h("div", { style: "display:flex;gap:6px;" },
+Object.keys(ACCENTS).map(function (k) {
+return h("button", {
+class: "btn" + (S.settings.accent === k ? " primary" : ""),
+onclick: function () { S.settings.accent = k; applyTheme(); save(); render(); }
+}, k);
+})
+)
+),
+h("div", { class: "setting-row" },
+h("div", null, h("b", null, "Launch Mode"), h("small", { style: "display:block;color:var(--muted);" }, "Open game inside tab overlay or new window")),
+h("button", {
+class: "btn",
+onclick: function () { S.settings.launchMode = S.settings.launchMode === "inline" ? "tab" : "inline"; save(); render(); }
+}, S.settings.launchMode === "inline" ? "Inline Overlay" : "New Tab")
+),
+h("div", { class: "setting-row" },
+h("div", null, h("b", null, "Export Offline Backup"), h("small", { style: "display:block;color:var(--muted);" }, "Download your instances, mods, and servers as JSON")),
+h("button", {
+class: "btn primary",
+onclick: function () {
+var blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
+var a = h("a", { href: URL.createObjectURL(blob), download: "deepslate-backup.json" });
+document.body.append(a); a.click(); a.remove();
+toast("Backup downloaded");
+}
+}, "Download Data")
+)
+)
+);
+};
+/* ---------- ROUTER & BOOT ---------- */
+function applyTheme() {
+var col = ACCENTS[S.settings.accent] || ACCENTS.periwinkle;
+document.documentElement.style.setProperty("--accent", col);
+}
+function syncTopbar() {
+var u = document.getElementById("navUsername");
+var a = document.getElementById("navAvatar");
+var st = document.getElementById("streakPill");
+if (u) u.textContent = S.profile.name || "Player";
+if (a) a.src = "mc-heads.net" + encodeURIComponent(S.profile.name || "Steve") + "/24";
+if (st) st.textContent = "🔥 " + (S.streak || 1);
+}
+function render() {
+var route = (location.hash || "#/home").replace(/^#//, "");
+if (!pages[route]) route = "home";
+document.querySelectorAll("#topnav a").forEach(function (a) {
+a.classList.toggle("active", a.getAttribute("data-route") === route);
+});
+var view = document.getElementById("view");
+if (view) {
+view.innerHTML = "";
+view.append(pagesroute);
+}
+syncTopbar();
+}
+var cmdBtn = document.getElementById("commandHint");
+if (cmdBtn) cmdBtn.addEventListener("click", function () { location.hash = "#/mods"; });
+window.addEventListener("hashchange", render);
+applyTheme();
+render();
+})();
