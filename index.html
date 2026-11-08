@@ -3,112 +3,47 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#0a0e10">
-  <meta name="description" content="Deepslate Client — a community Minecraft launcher concept.">
+  <meta name="theme-color" content="#0b0b0e">
   <title>Deepslate Client</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Oxanium:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Oxanium:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="ambient ambient-one"></div>
-  <div class="ambient ambient-two"></div>
-
-  <div class="app">
-    <aside class="side" id="side" aria-label="Main navigation">
-      <a class="brand" href="#/home" aria-label="Deepslate home">
-        <img
-          class="brand-mark"
-          src="https://minecraft.wiki/images/Deepslate_%28UD%29_JE3_BE2.png?7635f"
-          alt="Minecraft Deepslate block"
-        >
-        <span class="brand-name">DEEPSLATE<small>CLIENT / 01</small></span>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand" href="#/home">
+        <img class="brand-mark" src="https://minecraft.wiki" alt="Deepslate">
+        <span class="brand-title">Deepslate</span>
       </a>
-
-      <div class="side-label">WORKSPACE</div>
-      <nav>
-        <a href="#/home" data-route="home">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10H3V10Z"/><path d="M9 20v-7h6v7"/></svg>
-          <span>Overview</span><i class="nav-dot"></i>
-        </a>
-        <a href="#/instances" data-route="instances">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg>
-          <span>Instances</span>
-        </a>
+      <nav class="topnav" id="topnav">
+        <a href="#/home" data-route="home">Home</a>
+        <a href="#/mods" data-route="mods">Mods</a>
+        <a href="#/clips" data-route="clips">Clips</a>
+        <a href="#/social" data-route="social">Social</a>
+        <a href="#/wardrobe" data-route="wardrobe">Wardrobe</a>
+        <a href="#/settings" data-route="settings">Settings</a>
+        <a href="#/servers" data-route="servers">Servers ▾</a>
       </nav>
+    </div>
 
-      <div class="side-label">COLLECTION</div>
-      <nav>
-        <a href="#/mods" data-route="mods">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>
-          <span>Mod library</span>
-        </a>
-        <a href="#/modpacks" data-route="modpacks">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v16"/></svg>
-          <span>Modpacks</span>
-        </a>
-        <a href="#/servers" data-route="servers">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6"/></svg>
-          <span>Servers</span>
-        </a>
-      </nav>
+    <div class="topbar-right">
+      <button class="icon-pill" id="commandHint" title="Search (Ctrl+K)">🔍</button>
+      <div class="streak-pill" id="streakPill">🔥 1</div>
+      <a class="profile-pill" href="#/settings" id="profilePill">
+        <img id="navAvatar" src="https://mc-heads.net" alt="">
+        <span id="navUsername">Player</span>
+      </a>
+    </div>
+  </header>
 
-      <div class="side-label">PERSONAL</div>
-      <nav>
-        <a href="#/profile" data-route="profile">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3-7 8-7s8 3 8 7"/></svg>
-          <span>Profile</span>
-        </a>
-        <a href="#/settings" data-route="settings">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.2 2.1-2 2-2.2-1.2a8 8 0 0 1-2 .8L14 21h-4l-.5-2.2a8 8 0 0 1-2-.8L5.3 19l-2-2 1.2-2.1a8 8 0 0 1-.8-2L1.5 12l2.2-.9a8 8 0 0 1 .8-2L3.3 7l2-2 2.2 1.2a8 8 0 0 1 2-.8L10 3h4l.5 2.4a8 8 0 0 1 2 .8L18.7 5l2 2-1.2 2.1a8 8 0 0 1 .8 2l2.2.9-2.2 1a8 8 0 0 1-.9 2Z"/></svg>
-          <span>Settings</span>
-        </a>
-      </nav>
-
-      <div class="side-bottom">
-        <div class="side-status"><span class="status-light"></span> LOCAL CLIENT</div>
-        <p>Independent community project.<br>Not affiliated with Mojang or Microsoft.</p>
-        <span class="side-version">DEEPSLATE / 0.3.0</span>
-      </div>
-    </aside>
-
-    <div class="scrim" id="scrim"></div>
-
-    <main>
-      <header class="top">
-        <button class="icon-btn menu" id="menuBtn" aria-label="Open menu">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
-        <div class="top-heading">
-          <span class="eyebrow">DEEPSLATE CLIENT</span>
-          <h1 id="pageTitle">Overview</h1>
-        </div>
-        <div class="top-right">
-          <span class="pill" id="statusPill"></span>
-          <button class="command-hint" type="button" id="commandHint" aria-label="Command palette">
-            <span>⌘</span><span>K</span>
-          </button>
-        </div>
-      </header>
-
-      <div id="view" class="view"></div>
-
-      <footer class="foot">
-        <span>DEEPSLATE CLIENT</span>
-        <span class="foot-divider"></span>
-        <span>BUILT FOR THE DEEP</span>
-        <span class="foot-spacer"></span>
-        <span>INDEPENDENT COMMUNITY PROJECT</span>
-      </footer>
-    </main>
-  </div>
+  <main id="view" class="main-wrap"></main>
 
   <div id="toasts" aria-live="polite"></div>
   <div id="overlay"></div>
 
-  <noscript><p style="padding:2rem;color:white">Deepslate Client needs JavaScript enabled.</p></noscript>
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
