@@ -1,3 +1,4 @@
+
 (function () {
   "use strict";
 
@@ -65,11 +66,11 @@
   }
 
   const state = loadState();
+
   let currentRoute = "home";
   let skinViewer = null;
   let supabase = null;
   let currentUser = null;
-  let socialRefreshTimer = null;
 
   function saveState() {
     try {
@@ -114,6 +115,7 @@
     if (!ACCENTS[accent]) return;
 
     state.accent = accent;
+
     document.documentElement.style.setProperty("--accent", ACCENTS[accent]);
     document.documentElement.style.setProperty(
       "--accent-soft",
@@ -159,6 +161,7 @@
 
     gameStage.hidden = true;
     pageContent.hidden = false;
+
     renderRoute();
   }
 
@@ -187,6 +190,8 @@
     }
   }
 
+  /* HOME */
+
   function renderHome() {
     const enabledMods = state.mods.filter(mod => mod.enabled).length;
 
@@ -211,34 +216,75 @@
           </div>
         </section>
 
-        <div class="section-heading"><h2>Your workspace</h2><span class="muted">Quick overview</span></div>
+        <div class="section-heading">
+          <h2>Your workspace</h2>
+          <span class="muted">Quick overview</span>
+        </div>
 
         <div class="grid">
-          <div class="panel"><div class="stat-label">GAME VERSION</div><div class="stat-value">1.21.11</div><div class="stat-label">Minecraft client</div></div>
-          <div class="panel"><div class="stat-label">ENABLED MODS</div><div class="stat-value">${enabledMods}</div><div class="stat-label">Saved preferences</div></div>
-          <div class="panel"><div class="stat-label">SAVED SERVERS</div><div class="stat-value">${state.servers.length}</div><div class="stat-label">Your server list</div></div>
+          <div class="panel">
+            <div class="stat-label">GAME VERSION</div>
+            <div class="stat-value">1.21.11</div>
+            <div class="stat-label">Minecraft client</div>
+          </div>
+
+          <div class="panel">
+            <div class="stat-label">ENABLED MODS</div>
+            <div class="stat-value">${enabledMods}</div>
+            <div class="stat-label">Saved preferences</div>
+          </div>
+
+          <div class="panel">
+            <div class="stat-label">SAVED SERVERS</div>
+            <div class="stat-value">${state.servers.length}</div>
+            <div class="stat-label">Your server list</div>
+          </div>
         </div>
 
         <div class="section-heading"><h2>Explore Deepslate</h2></div>
 
         <div class="grid">
-          <div class="panel feature-card" data-route="mods"><div class="feature-icon">▦</div><div><strong>Mod Library</strong><span>Manage your saved mod preferences.</span></div></div>
-          <div class="panel feature-card" data-route="wardrobe"><div class="feature-icon">◇</div><div><strong>Wardrobe</strong><span>Customize your player skin.</span></div></div>
-          <div class="panel feature-card" data-route="servers"><div class="feature-icon">◎</div><div><strong>Multiplayer</strong><span>Keep your favorite servers together.</span></div></div>
+          <div class="panel feature-card" data-route="mods">
+            <div class="feature-icon">▦</div>
+            <div><strong>Mod Library</strong><span>Manage your saved mod preferences.</span></div>
+          </div>
+
+          <div class="panel feature-card" data-route="wardrobe">
+            <div class="feature-icon">◇</div>
+            <div><strong>Wardrobe</strong><span>Customize your player skin.</span></div>
+          </div>
+
+          <div class="panel feature-card" data-route="servers">
+            <div class="feature-icon">◎</div>
+            <div><strong>Multiplayer</strong><span>Keep your favorite servers together.</span></div>
+          </div>
         </div>
 
         <div class="section-heading"><h2>Getting started</h2></div>
 
         <div class="panel">
           <div class="list">
-            <div class="list-row"><div><strong>Customize your launcher</strong><p>Choose an accent color and make Deepslate yours.</p></div><button class="small-button" data-route="settings">Open settings</button></div>
-            <div class="list-row"><div><strong>Build your mod collection</strong><p>Choose which preferences you want enabled.</p></div><button class="small-button" data-route="mods">View mods</button></div>
-            <div class="list-row"><div><strong>Add your favorite servers</strong><p>Save server addresses for quick access.</p></div><button class="small-button" data-route="servers">Manage servers</button></div>
+            <div class="list-row">
+              <div><strong>Customize your launcher</strong><p>Choose an accent color and make Deepslate yours.</p></div>
+              <button class="small-button" data-route="settings">Open settings</button>
+            </div>
+
+            <div class="list-row">
+              <div><strong>Build your mod collection</strong><p>Choose which preferences you want enabled.</p></div>
+              <button class="small-button" data-route="mods">View mods</button>
+            </div>
+
+            <div class="list-row">
+              <div><strong>Add your favorite servers</strong><p>Save server addresses for quick access.</p></div>
+              <button class="small-button" data-route="servers">Manage servers</button>
+            </div>
           </div>
         </div>
       </div>
     `;
   }
+
+  /* MODS */
 
   function renderMods() {
     return `
@@ -246,23 +292,49 @@
         ${heading("CUSTOMIZE YOUR GAME", "Mod Library", "Manage your add-on preferences and build your ideal setup.")}
 
         <div class="grid">
-          <div class="panel"><div class="stat-label">AVAILABLE ENTRIES</div><div class="stat-value">${state.mods.length}</div></div>
-          <div class="panel"><div class="stat-label">ENABLED</div><div class="stat-value">${state.mods.filter(m => m.enabled).length}</div></div>
-          <div class="panel"><div class="stat-label">GAME VERSION</div><div class="stat-value">1.21.11</div></div>
+          <div class="panel">
+            <div class="stat-label">AVAILABLE ENTRIES</div>
+            <div class="stat-value">${state.mods.length}</div>
+          </div>
+
+          <div class="panel">
+            <div class="stat-label">ENABLED</div>
+            <div class="stat-value">${state.mods.filter(m => m.enabled).length}</div>
+          </div>
+
+          <div class="panel">
+            <div class="stat-label">GAME VERSION</div>
+            <div class="stat-value">1.21.11</div>
+          </div>
         </div>
 
-        <div class="section-heading"><h2>Installed preferences</h2><span class="pill">LOCAL SETTINGS</span></div>
+        <div class="section-heading">
+          <h2>Installed preferences</h2>
+          <span class="pill">LOCAL SETTINGS</span>
+        </div>
 
         <div class="list">
           ${state.mods.map(mod => `
             <div class="list-row">
-              <div><strong>${escapeHTML(mod.name)}</strong><p>${escapeHTML(mod.description)} · ${escapeHTML(mod.category)}</p></div>
-              <button class="toggle ${mod.enabled ? "on" : ""}" data-action="toggle-mod" data-id="${escapeHTML(mod.id)}" aria-label="Toggle ${escapeHTML(mod.name)}" aria-pressed="${mod.enabled}"></button>
+              <div>
+                <strong>${escapeHTML(mod.name)}</strong>
+                <p>${escapeHTML(mod.description)} · ${escapeHTML(mod.category)}</p>
+              </div>
+
+              <button
+                class="toggle ${mod.enabled ? "on" : ""}"
+                data-action="toggle-mod"
+                data-id="${escapeHTML(mod.id)}"
+                aria-label="Toggle ${escapeHTML(mod.name)}"
+                aria-pressed="${mod.enabled}">
+              </button>
             </div>
           `).join("")}
         </div>
 
-        <p class="muted" style="margin-top:18px">These are saved launcher preferences. Actual mod installation requires a compatible Minecraft runtime integration.</p>
+        <p class="muted" style="margin-top:18px">
+          These are saved launcher preferences. Actual mod installation requires a compatible Minecraft runtime integration.
+        </p>
       </div>
     `;
   }
@@ -321,7 +393,9 @@
 
           <div class="panel">
             <div class="eyebrow">YOUR SKIN</div>
+
             <h2>${state.skin ? "Custom skin uploaded" : "No skin uploaded"}</h2>
+
             <p class="muted">
               ${state.skin
                 ? "Your custom skin is currently being used in the preview."
@@ -332,6 +406,7 @@
               <label class="button" for="skin-upload" style="text-align:center;cursor:pointer">
                 ↑ &nbsp; Upload Minecraft Skin
               </label>
+
               <input id="skin-upload" type="file" accept="image/png" hidden>
 
               <button class="button secondary" data-action="remove-skin" ${state.skin ? "" : "disabled"}>
@@ -340,14 +415,26 @@
             </div>
 
             <div class="section-heading"><h2>Skin requirements</h2></div>
+
             <div class="list">
-              <div class="list-row"><div><strong>File format</strong><p>PNG image</p></div><span class="pill">PNG</span></div>
-              <div class="list-row"><div><strong>Dimensions</strong><p>64 × 64 pixels</p></div><span class="pill">64×64</span></div>
-              <div class="list-row"><div><strong>Default model</strong><p>Plain gray Minecraft character</p></div><span class="pill">GRAY</span></div>
+              <div class="list-row">
+                <div><strong>File format</strong><p>PNG image</p></div>
+                <span class="pill">PNG</span>
+              </div>
+
+              <div class="list-row">
+                <div><strong>Dimensions</strong><p>64 × 64 pixels</p></div>
+                <span class="pill">64×64</span>
+              </div>
+
+              <div class="list-row">
+                <div><strong>Default model</strong><p>Plain gray Minecraft character</p></div>
+                <span class="pill">GRAY</span>
+              </div>
             </div>
 
             <p class="muted" style="margin-top:18px;font-size:12px">
-              Your uploaded skin is saved in this browser. Account synchronization can be connected later.
+              Your uploaded skin is saved in this browser.
             </p>
           </div>
         </div>
@@ -358,8 +445,10 @@
   function loadScript(url) {
     return new Promise((resolve, reject) => {
       const existing = document.querySelector('script[data-deepslate-skinview]');
+
       if (existing) {
         if (window.skinview3d) return resolve();
+
         existing.addEventListener("load", resolve, { once: true });
         existing.addEventListener("error", reject, { once: true });
         return;
@@ -391,13 +480,11 @@
       if (currentRoute !== "wardrobe" || !document.getElementById("skin-viewer")) return;
       if (!window.skinview3d) throw new Error("Skin viewer library unavailable.");
 
-      const skinTexture = state.skin || createGraySkin();
-
       skinViewer = new window.skinview3d.SkinViewer({
-        canvas: canvas,
+        canvas,
         width: canvas.clientWidth || 400,
         height: canvas.clientHeight || 390,
-        skin: skinTexture
+        skin: state.skin || createGraySkin()
       });
 
       skinViewer.zoom = 0.9;
@@ -414,10 +501,12 @@
       window.addEventListener("resize", resizeSkinViewer);
     } catch (error) {
       const fallback = document.getElementById("skin-viewer-fallback");
+
       if (fallback) {
         fallback.hidden = false;
         fallback.textContent = "Could not load the 3D preview. Check your internet connection.";
       }
+
       console.error("Deepslate wardrobe:", error);
     }
   }
@@ -480,12 +569,26 @@
   function renderServers() {
     return `
       <div class="page">
-        ${heading("MULTIPLAYER", "Your Servers", "Keep your favorite Minecraft servers organized.", '<button class="button" data-action="add-server">＋ Add Server</button>')}
-        <div class="section-heading"><h2>Saved servers</h2><span class="muted">${state.servers.length} saved</span></div>
+        ${heading(
+          "MULTIPLAYER",
+          "Your Servers",
+          "Keep your favorite Minecraft servers organized.",
+          '<button class="button" data-action="add-server">＋ Add Server</button>'
+        )}
+
+        <div class="section-heading">
+          <h2>Saved servers</h2>
+          <span class="muted">${state.servers.length} saved</span>
+        </div>
+
         <div class="list">
           ${state.servers.length ? state.servers.map(server => `
             <div class="list-row">
-              <div><strong>${escapeHTML(server.name)}</strong><p>${escapeHTML(server.address)}</p></div>
+              <div>
+                <strong>${escapeHTML(server.name)}</strong>
+                <p>${escapeHTML(server.address)}</p>
+              </div>
+
               <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
                 <button class="small-button" data-action="copy-server" data-id="${escapeHTML(server.id)}">Copy address</button>
                 <button class="small-button" data-action="remove-server" data-id="${escapeHTML(server.id)}">Remove</button>
@@ -493,7 +596,10 @@
             </div>
           `).join("") : '<div class="empty-state">No servers saved yet. Add your first server to get started.</div>'}
         </div>
-        <p class="muted" style="margin-top:18px">Live status and joining require support from the connected game client.</p>
+
+        <p class="muted" style="margin-top:18px">
+          Live status and joining require support from the connected game client.
+        </p>
       </div>
     `;
   }
@@ -514,6 +620,7 @@
           <div class="panel">
             <h2>Friends</h2>
             <p class="muted">Find players and manage friend requests.</p>
+
             <div id="friends-area">
               ${currentUser
                 ? '<div class="list"><input class="input" id="friend-search" placeholder="Search username"><button class="button" data-action="search-friends">Find player</button><div id="friend-results"></div><div id="friend-list"></div></div>'
@@ -524,8 +631,11 @@
           <div class="panel">
             <h2>Messages</h2>
             <p class="muted">Private conversations with your friends.</p>
+
             <div id="messages-area">
-              ${currentUser ? '<div id="conversation-list" class="list"></div><div id="conversation-view"></div>' : '<p class="muted">Log in to use messages.</p>'}
+              ${currentUser
+                ? '<div id="conversation-list" class="list"></div><div id="conversation-view"></div>'
+                : '<p class="muted">Log in to use messages.</p>'}
             </div>
           </div>
         </div>
@@ -535,12 +645,18 @@
 
   function renderAccountArea() {
     if (currentUser) {
+      const username = currentUser.user_metadata?.username || "Player";
+
       return `
         <div class="list">
           <div class="list-row">
-            <div><strong>${escapeHTML(currentUser.email || "Signed in")}</strong><p>Online account connected</p></div>
+            <div>
+              <strong>${escapeHTML(username)}</strong>
+              <p>Online account connected</p>
+            </div>
             <span class="pill">SIGNED IN</span>
           </div>
+
           <button class="button secondary" data-action="logout">Log out</button>
         </div>
       `;
@@ -548,9 +664,15 @@
 
     if (!supabase) {
       return `
-        <p class="muted">Account services are not connected yet. You can use Deepslate offline while the online account service is being configured.</p>
+        <p class="muted">
+          Account services are not connected yet. You can use Deepslate offline while the online account service is being configured.
+        </p>
+
         <span class="pill">OFFLINE MODE</span>
-        <p class="muted" style="margin-top:12px">Your local profile is <strong>${escapeHTML(state.username)}</strong>.</p>
+
+        <p class="muted" style="margin-top:12px">
+          Your local profile is <strong>${escapeHTML(state.username)}</strong>.
+        </p>
       `;
     }
 
@@ -558,22 +680,72 @@
       <div class="grid two">
         <form id="signup-form" class="list">
           <h3>Create account</h3>
-          <input class="input" name="username" maxlength="16" placeholder="Username" required>
-          <input class="input" name="email" type="email" placeholder="Email address" required>
-          <input class="input" name="password" type="password" minlength="8" placeholder="Password (8+ characters)" required>
+
+          <input
+            class="input"
+            name="username"
+            maxlength="16"
+            placeholder="Username"
+            autocomplete="username"
+            required
+          >
+
+          <input
+            class="input"
+            name="email"
+            type="email"
+            placeholder="Email address (optional)"
+            autocomplete="email"
+          >
+
+          <input
+            class="input"
+            name="password"
+            type="password"
+            minlength="8"
+            placeholder="Password (8+ characters)"
+            autocomplete="new-password"
+            required
+          >
+
           <button class="button" type="submit">Create account</button>
+
+          <p class="muted" style="font-size:12px">
+            You can leave the email field blank.
+          </p>
         </form>
 
         <form id="login-form" class="list">
           <h3>Log in</h3>
-          <input class="input" name="email" type="email" placeholder="Email address" required>
-          <input class="input" name="password" type="password" placeholder="Password" required>
+
+          <input
+            class="input"
+            name="identifier"
+            placeholder="Username or email"
+            autocomplete="username"
+            required
+          >
+
+          <input
+            class="input"
+            name="password"
+            type="password"
+            placeholder="Password"
+            autocomplete="current-password"
+            required
+          >
+
           <button class="button secondary" type="submit">Log in</button>
         </form>
       </div>
-      <p class="muted" style="margin-top:12px">Your password is handled by the authentication provider and is never saved in launcher storage.</p>
+
+      <p class="muted" style="margin-top:12px">
+        Your password is securely handled by Supabase and is never saved in launcher storage.
+      </p>
     `;
   }
+
+  /* SUPABASE */
 
   async function initializeSupabase() {
     const url = String(C.supabaseUrl || "").trim();
@@ -586,6 +758,7 @@
 
     try {
       await loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2");
+
       if (!window.supabase || !window.supabase.createClient) {
         throw new Error("Supabase library unavailable.");
       }
@@ -593,6 +766,7 @@
       supabase = window.supabase.createClient(url, key);
 
       const result = await supabase.auth.getSession();
+
       currentUser = result.data && result.data.session
         ? result.data.session.user
         : null;
@@ -604,10 +778,27 @@
           renderRoute();
         }
       });
+
+      if (currentRoute === "social") {
+        renderRoute();
+      }
     } catch (error) {
       console.error("Deepslate account setup:", error);
       supabase = null;
     }
+  }
+
+  /*
+    USERNAME-ONLY ACCOUNT SUPPORT
+
+    Accounts without an email receive an internal
+    email-shaped identifier for Supabase authentication.
+
+    This is not a real email address.
+  */
+
+  function usernameToInternalEmail(username) {
+    return username.toLowerCase() + "@accounts.deepslate.invalid";
   }
 
   async function signUp(form) {
@@ -617,7 +808,7 @@
     }
 
     const username = form.elements.username.value.trim();
-    const email = form.elements.email.value.trim();
+    const suppliedEmail = form.elements.email.value.trim();
     const password = form.elements.password.value;
 
     if (!/^[a-zA-Z0-9_]{3,16}$/.test(username)) {
@@ -630,11 +821,21 @@
       return;
     }
 
+    if (suppliedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(suppliedEmail)) {
+      toast("Please enter a valid email address or leave it blank.");
+      return;
+    }
+
+    const email = suppliedEmail || usernameToInternalEmail(username);
+
     const result = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { username: username }
+        data: {
+          username: username,
+          has_real_email: Boolean(suppliedEmail)
+        }
       }
     });
 
@@ -643,7 +844,15 @@
       return;
     }
 
-    toast("Account created. Check your email if confirmation is required.");
+    if (result.data.session) {
+      currentUser = result.data.user;
+      state.username = username;
+      saveState();
+      renderRoute();
+      toast("Welcome to Deepslate, " + username + "!");
+    } else {
+      toast("Account created. Check your Supabase confirmation settings.");
+    }
   }
 
   async function logIn(form) {
@@ -652,17 +861,42 @@
       return;
     }
 
+    const identifier = form.elements.identifier.value.trim();
+    const password = form.elements.password.value;
+
+    if (!identifier || !password) {
+      toast("Enter your username or email and password.");
+      return;
+    }
+
+    /*
+      If the user enters an email, use it directly.
+      Otherwise, convert their username to the internal identifier.
+    */
+
+    const email = identifier.includes("@")
+      ? identifier
+      : usernameToInternalEmail(identifier);
+
     const result = await supabase.auth.signInWithPassword({
-      email: form.elements.email.value.trim(),
-      password: form.elements.password.value
+      email,
+      password
     });
 
     if (result.error) {
-      toast(result.error.message);
+      toast("Login failed. Check your username/email and password.");
       return;
     }
 
     currentUser = result.data.user;
+
+    const username = currentUser.user_metadata?.username;
+
+    if (username) {
+      state.username = username;
+      saveState();
+    }
+
     toast("Logged in successfully.");
     renderRoute();
   }
@@ -688,53 +922,116 @@
     return `
       <div class="page">
         ${heading("YOUR WEB SPACE", "Browser", "Open useful websites alongside your launcher.")}
+
         <div class="panel">
           <form id="browser-form" class="list">
             <label class="muted" for="browser-url">Website address</label>
-            <input class="input" id="browser-url" type="url" placeholder="https://example.com" value="${escapeHTML(state.browserUrl)}" required>
+
+            <input
+              class="input"
+              id="browser-url"
+              type="url"
+              placeholder="https://example.com"
+              value="${escapeHTML(state.browserUrl)}"
+              required
+            >
+
             <div><button class="button" type="submit">Open website ↗</button></div>
           </form>
         </div>
+
         <div class="section-heading"><h2>Quick links</h2></div>
+
         <div class="grid">
-          <div class="panel feature-card" data-action="quick-link" data-url="https://minecraft.net"><div class="feature-icon">M</div><div><strong>Minecraft</strong><span>Official website</span></div></div>
-          <div class="panel feature-card" data-action="quick-link" data-url="https://github.com"><div class="feature-icon">G</div><div><strong>GitHub</strong><span>Project development</span></div></div>
-          <div class="panel feature-card" data-action="quick-link" data-url="https://deepslate-client.pages.dev"><div class="feature-icon">D</div><div><strong>Deepslate</strong><span>Your launcher</span></div></div>
+          <div class="panel feature-card" data-action="quick-link" data-url="https://minecraft.net">
+            <div class="feature-icon">M</div>
+            <div><strong>Minecraft</strong><span>Official website</span></div>
+          </div>
+
+          <div class="panel feature-card" data-action="quick-link" data-url="https://github.com">
+            <div class="feature-icon">G</div>
+            <div><strong>GitHub</strong><span>Project development</span></div>
+          </div>
+
+          <div class="panel feature-card" data-action="quick-link" data-url="https://deepslate-client.pages.dev">
+            <div class="feature-icon">D</div>
+            <div><strong>Deepslate</strong><span>Your launcher</span></div>
+          </div>
         </div>
       </div>
     `;
   }
+
+  /* PERFORMANCE */
 
   function renderPerformance() {
     return `
       <div class="page">
         ${heading("OPTIMIZE YOUR EXPERIENCE", "Performance", "Your performance dashboard and launcher-side preferences.")}
+
         <div class="grid">
-          <div class="panel"><div class="stat-label">GAME VERSION</div><div class="stat-value">1.21.11</div><div class="stat-label">Selected client</div></div>
-          <div class="panel"><div class="stat-label">PERFORMANCE MODS</div><div class="stat-value">${state.mods.filter(m => m.enabled && m.category === "Performance").length}</div><div class="stat-label">Enabled preferences</div></div>
-          <div class="panel"><div class="stat-label">RUNTIME STATUS</div><div class="stat-value" style="font-size:19px">Not connected</div><div class="stat-label">Waiting for game integration</div></div>
+          <div class="panel">
+            <div class="stat-label">GAME VERSION</div>
+            <div class="stat-value">1.21.11</div>
+            <div class="stat-label">Selected client</div>
+          </div>
+
+          <div class="panel">
+            <div class="stat-label">PERFORMANCE MODS</div>
+            <div class="stat-value">${state.mods.filter(m => m.enabled && m.category === "Performance").length}</div>
+            <div class="stat-label">Enabled preferences</div>
+          </div>
+
+          <div class="panel">
+            <div class="stat-label">RUNTIME STATUS</div>
+            <div class="stat-value" style="font-size:19px">Not connected</div>
+            <div class="stat-label">Waiting for game integration</div>
+          </div>
         </div>
+
         <div class="section-heading"><h2>Performance preferences</h2></div>
+
         <div class="list">
-          <div class="list-row"><div><strong>FPS Display</strong><p>Show FPS when supported by the game client.</p></div><span class="pill">MOD LIBRARY</span></div>
-          <div class="list-row"><div><strong>Performance Profile</strong><p>Choose a launcher preference profile.</p></div><span class="pill">COMING SOON</span></div>
-          <div class="list-row"><div><strong>Live Statistics</strong><p>Runtime FPS and memory statistics require game integration.</p></div><span class="pill">NOT CONNECTED</span></div>
+          <div class="list-row">
+            <div><strong>FPS Display</strong><p>Show FPS when supported by the game client.</p></div>
+            <span class="pill">MOD LIBRARY</span>
+          </div>
+
+          <div class="list-row">
+            <div><strong>Performance Profile</strong><p>Choose a launcher preference profile.</p></div>
+            <span class="pill">COMING SOON</span>
+          </div>
+
+          <div class="list-row">
+            <div><strong>Live Statistics</strong><p>Runtime FPS and memory statistics require game integration.</p></div>
+            <span class="pill">NOT CONNECTED</span>
+          </div>
         </div>
       </div>
     `;
   }
 
+  /* SETTINGS */
+
   function renderSettings() {
     return `
       <div class="page">
         ${heading("MAKE DEEPSLATE YOURS", "Settings", "Customize your launcher experience.")}
+
         <div class="grid two">
           <div class="panel">
             <h2>Appearance</h2>
             <p class="muted">Choose your launcher accent color.</p>
+
             <div class="color-options">
               ${Object.entries(ACCENTS).map(entry => `
-                <button class="color-choice ${state.accent === entry[0] ? "selected" : ""}" style="background:${entry[1]}" data-action="accent" data-color="${entry[0]}" title="${entry[0]}"></button>
+                <button
+                  class="color-choice ${state.accent === entry[0] ? "selected" : ""}"
+                  style="background:${entry[1]}"
+                  data-action="accent"
+                  data-color="${entry[0]}"
+                  title="${entry[0]}">
+                </button>
               `).join("")}
             </div>
           </div>
@@ -742,8 +1039,17 @@
           <div class="panel">
             <h2>Player profile</h2>
             <p class="muted">Change your local display name.</p>
+
             <form id="profile-form" class="list">
-              <input class="input" id="profile-name" maxlength="16" value="${escapeHTML(state.username)}" placeholder="Player name" required>
+              <input
+                class="input"
+                id="profile-name"
+                maxlength="16"
+                value="${escapeHTML(state.username)}"
+                placeholder="Player name"
+                required
+              >
+
               <button class="button" type="submit">Save profile</button>
             </form>
           </div>
@@ -751,6 +1057,7 @@
           <div class="panel">
             <h2>Data management</h2>
             <p class="muted">Export or restore your launcher preferences.</p>
+
             <div class="list">
               <button class="button secondary" data-action="export">Export settings</button>
               <button class="button secondary" data-action="import">Import settings</button>
@@ -761,10 +1068,19 @@
 
           <div class="panel">
             <h2>About Deepslate</h2>
+
             <div class="list">
-              <div class="list-row"><div><strong>Launcher version</strong><p>${escapeHTML(C.version || "1.0.0")}</p></div></div>
-              <div class="list-row"><div><strong>Minecraft version</strong><p>1.21.11</p></div></div>
-              <div class="list-row"><div><strong>Storage</strong><p>Browser local storage</p></div></div>
+              <div class="list-row">
+                <div><strong>Launcher version</strong><p>${escapeHTML(C.version || "1.0.0")}</p></div>
+              </div>
+
+              <div class="list-row">
+                <div><strong>Minecraft version</strong><p>1.21.11</p></div>
+              </div>
+
+              <div class="list-row">
+                <div><strong>Storage</strong><p>Browser local storage</p></div>
+              </div>
             </div>
           </div>
         </div>
@@ -798,8 +1114,10 @@
     if (!mod) return;
 
     mod.enabled = !mod.enabled;
+
     saveState();
     renderRoute();
+
     toast(mod.name + (mod.enabled ? " enabled." : " disabled."));
   }
 
@@ -818,18 +1136,24 @@
 
   function removeServer(id) {
     const server = state.servers.find(item => item.id === id);
+
     if (!server || !window.confirm("Remove " + server.name + "?")) return;
 
     state.servers = state.servers.filter(item => item.id !== id);
+
     saveState();
     renderRoute();
     toast("Server removed.");
   }
 
-  /* SETTINGS */
+  /* SETTINGS ACTIONS */
 
   function exportSettings() {
-    const file = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const file = new Blob(
+      [JSON.stringify(state, null, 2)],
+      { type: "application/json" }
+    );
+
     const url = URL.createObjectURL(file);
     const link = document.createElement("a");
 
@@ -847,16 +1171,26 @@
     reader.onload = function () {
       try {
         const imported = JSON.parse(reader.result);
-        if (!imported || typeof imported !== "object") throw new Error("Invalid settings");
+
+        if (!imported || typeof imported !== "object") {
+          throw new Error("Invalid settings");
+        }
 
         if (Array.isArray(imported.mods)) state.mods = imported.mods;
         if (Array.isArray(imported.servers)) state.servers = imported.servers;
-        if (typeof imported.username === "string") state.username = imported.username.slice(0, 16);
-        if (ACCENTS[imported.accent]) state.accent = imported.accent;
+
+        if (typeof imported.username === "string") {
+          state.username = imported.username.slice(0, 16);
+        }
+
+        if (ACCENTS[imported.accent]) {
+          state.accent = imported.accent;
+        }
 
         saveState();
         setAccent(state.accent);
         renderRoute();
+
         toast("Settings imported.");
       } catch (error) {
         toast("That settings file could not be imported.");
@@ -892,6 +1226,7 @@
 
     if (!gameFrameWrap.querySelector("iframe")) {
       const frame = document.createElement("iframe");
+
       frame.className = "game-frame";
       frame.title = "Deepslate Minecraft Game";
       frame.allow = "fullscreen; autoplay; gamepad";
@@ -942,11 +1277,19 @@
     list.innerHTML = result.data.map(row => `
       <div class="list-row">
         <strong>${escapeHTML(row.friend && row.friend.username || "Player")}</strong>
-        <button class="small-button" data-action="open-chat" data-friend="${escapeHTML(row.friend.id)}" data-name="${escapeHTML(row.friend.username)}">Message</button>
+
+        <button
+          class="small-button"
+          data-action="open-chat"
+          data-friend="${escapeHTML(row.friend.id)}"
+          data-name="${escapeHTML(row.friend.username)}">
+          Message
+        </button>
       </div>
     `).join("");
 
     const conversations = document.getElementById("conversation-list");
+
     if (conversations) {
       conversations.innerHTML = '<p class="muted">Select a friend to start a conversation.</p>';
     }
@@ -957,9 +1300,11 @@
 
     const input = document.getElementById("friend-search");
     const results = document.getElementById("friend-results");
+
     if (!input || !results) return;
 
     const username = input.value.trim();
+
     if (username.length < 3) {
       toast("Enter at least 3 characters.");
       return;
@@ -975,7 +1320,7 @@
       .limit(10);
 
     if (result.error) {
-      results.innerHTML = '<p class="muted">Could not search players. The profiles database may not be set up yet.</p>';
+      results.innerHTML = '<p class="muted">Could not search players.</p>';
       return;
     }
 
@@ -987,7 +1332,13 @@
     results.innerHTML = result.data.map(profile => `
       <div class="list-row">
         <strong>${escapeHTML(profile.username)}</strong>
-        <button class="small-button" data-action="send-friend" data-id="${escapeHTML(profile.id)}">Add friend</button>
+
+        <button
+          class="small-button"
+          data-action="send-friend"
+          data-id="${escapeHTML(profile.id)}">
+          Add friend
+        </button>
       </div>
     `).join("");
   }
@@ -1016,18 +1367,35 @@
     if (!area) return;
 
     area.innerHTML = `
-      <div class="section-heading"><h3>${escapeHTML(friendName)}</h3></div>
-      <div id="chat-messages" class="list" style="max-height:280px;overflow:auto"></div>
+      <div class="section-heading">
+        <h3>${escapeHTML(friendName)}</h3>
+      </div>
+
+      <div
+        id="chat-messages"
+        class="list"
+        style="max-height:280px;overflow:auto">
+      </div>
+
       <form id="chat-form" class="list">
-        <input class="input" name="message" maxlength="2000" placeholder="Write a message..." required>
+        <input
+          class="input"
+          name="message"
+          maxlength="2000"
+          placeholder="Write a message..."
+          required
+        >
+
         <button class="button" type="submit">Send message</button>
       </form>
     `;
 
     area.dataset.friendId = friendId;
+
     await loadMessages(friendId);
 
     const form = document.getElementById("chat-form");
+
     form.addEventListener("submit", async event => {
       event.preventDefault();
 
@@ -1195,7 +1563,10 @@
       saveState();
 
       const profileName = document.querySelector(".profile-info strong");
-      if (profileName) profileName.textContent = state.username;
+
+      if (profileName) {
+        profileName.textContent = state.username;
+      }
 
       toast("Profile updated.");
     }
@@ -1205,14 +1576,20 @@
 
       let url = document.getElementById("browser-url").value.trim();
 
-      if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+      if (!/^https?:\/\//i.test(url)) {
+        url = "https://" + url;
+      }
 
       try {
         const parsed = new URL(url);
-        if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error();
+
+        if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+          throw new Error();
+        }
 
         state.browserUrl = parsed.href;
         saveState();
+
         window.open(parsed.href, "_blank", "noopener,noreferrer");
       } catch (error) {
         toast("Enter a valid website address.");
@@ -1233,21 +1610,29 @@
   document.addEventListener("change", function (event) {
     if (event.target.id === "skin-upload") {
       const file = event.target.files && event.target.files[0];
+
       if (file) uploadSkin(file);
+
       event.target.value = "";
     }
 
     if (event.target.id === "import-file") {
       const file = event.target.files && event.target.files[0];
+
       if (file) importSettings(file);
+
       event.target.value = "";
     }
   });
 
   const reloadButton = document.getElementById("reload-game");
-  if (reloadButton) reloadButton.addEventListener("click", reloadGame);
+
+  if (reloadButton) {
+    reloadButton.addEventListener("click", reloadGame);
+  }
 
   const searchButton = document.getElementById("search-button");
+
   if (searchButton) {
     searchButton.addEventListener("click", function () {
       const query = window.prompt("Search Deepslate sections:");
@@ -1266,10 +1651,16 @@
       ];
 
       const normalized = query.toLowerCase().trim();
-      const match = routes.find(item => item[1].includes(normalized) || item[0] === normalized);
 
-      if (match) setRoute(match[0]);
-      else toast("No matching section found.");
+      const match = routes.find(item =>
+        item[1].includes(normalized) || item[0] === normalized
+      );
+
+      if (match) {
+        setRoute(match[0]);
+      } else {
+        toast("No matching section found.");
+      }
     });
   }
 
@@ -1278,8 +1669,12 @@
   setAccent(state.accent);
 
   const profileName = document.querySelector(".profile-info strong");
-  if (profileName) profileName.textContent = state.username;
+
+  if (profileName) {
+    profileName.textContent = state.username;
+  }
 
   setRoute("home");
   initializeSupabase();
+
 })();
