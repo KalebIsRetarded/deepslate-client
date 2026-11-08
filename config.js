@@ -1,49 +1,29 @@
-/* ==========================================================================
-   DEEPSLATE CLIENT - CENTRAL CONFIGURATION
-   This is the ONLY place the game destination is set. Visitors cannot see
-   or edit it in the interface, and it is never saved in their browser.
-   ========================================================================== */
 window.DEEPSLATE_CONFIG = {
-  APP_VERSION: "0.4.0",
-
-  // Default Minecraft version (kept for backward compatibility with current app.js)
+  APP_VERSION: "0.5.0",
   VERSION: "1.21.11",
   DEFAULT_VERSION: "1.21.11",
-
-  // Multi-version engine presets (like Chromium Client's version selector)
   VERSIONS: [
-    { id: "1.21.11", label: "1.21.11 (Latest)", url: "", tag: "Modern" },
-    { id: "1.8.8",   label: "1.8.8 PvP (WASM)", url: "", tag: "Competitive" },
-    { id: "1.12.2",  label: "1.12.2 Modded",    url: "", tag: "Classic" }
+    { id: "1.21.11", label: "1.21.11 (Latest)", url: "" },
+    { id: "1.8.8",   label: "1.8.8 PvP (WASM)", url: "" }
   ],
-
-  // Where the Play button sends players.
-  //   ""                      -> game engine NOT connected (Play shows a notice)
-  //   "https://example.com"  -> an https:// page you are allowed to host/use
-  //   "/game/index.html"      -> a game build you upload inside this project
   GAME_URL: "",
-
-  ENGINE: {
-    name: "Deepslate Web Engine",
-    supportsModLoading: true
-  },
-
-  // Pre-populated featured servers (users can also add their own)
+  ENGINE: { name: "Deepslate Web Engine", supportsModLoading: true },
   FEATURED_SERVERS: [
-    { name: "ArchMC Network",  ip: "mc.arch.lol",    version: "1.8 - 1.21", featured: true },
-    { name: "ZythMC Practice", ip: "play.zyth.me",   version: "1.8.8",      featured: true },
-    { name: "Aeon Network",    ip: "aeonnetwork.gg", version: "1.8 - 1.20", featured: true }
+    { name: "ArchMC Network",  ip: "wss://mc.arch.lol",  version: "1.8 - 1.21" },
+    { name: "ZythMC Practice", ip: "wss://play.zyth.me", version: "1.8.8" }
   ],
-
-  // Toggleable client modules (ready to pass to your game iframe)
   MODS: [
-    { id: "fps-boost",  name: "Sodium FPS Boost", category: "Performance", status: "compatible", desc: "Optimizes chunk rendering and entity culling." },
-    { id: "zoom",       name: "OptiFine Zoom",    category: "Utility",     status: "compatible", desc: "Hold C to smoothly zoom the camera." },
-    { id: "fps-hud",    name: "FPS Counter",      category: "HUD",         status: "compatible", desc: "Displays real-time frames per second." },
-    { id: "keystrokes", name: "Keystrokes HUD",   category: "HUD",         status: "compatible", desc: "Shows WASD, Space, and LMB/RMB clicks." },
-    { id: "fullbright", name: "Fullbright",       category: "Visual",      status: "compatible", desc: "Maxes gamma so caves are always lit." },
-    { id: "cps",        name: "CPS Counter",      category: "HUD",         status: "compatible", desc: "Tracks left and right clicks per second." },
-    { id: "armor-hud",  name: "Armor Status",     category: "HUD",         status: "compatible", desc: "Displays equipped armor durability on screen." },
-    { id: "hitboxes",   name: "Clean Hitboxes",   category: "PvP",         status: "compatible", desc: "Toggles crisp entity bounding boxes." }
+    { id: "fps-boost",   name: "Sodium",               author: "Deepslate",    category: "Performance", icon: "🟩", color: "#22c55e", desc: "Sodium-style video settings built for the browser, on the game's own renderer for maximum FPS." },
+    { id: "iris",        name: "Iris Shaders",         author: "IrisShaders",  category: "Visuals",     icon: "🌈", color: "#3b82f6", tag: "Experimental", dep: "Needs Sodium (added for you)", warn: "Heavy: about 2-3x lower FPS", desc: "Load shader packs like Complementary in the browser." },
+    { id: "shade",       name: "Shade & Saturation",   author: "Cortex",       category: "Visuals",     icon: "🎚️", color: "#eab308", dep: "Needs Sodium (added for you)", desc: "Sliders for block shading and colour saturation." },
+    { id: "replay",      name: "Deepslate Replay",     author: "Deepslate",    category: "Utility",     icon: "▶️", color: "#ef4444", desc: "Record your games and watch them back from any angle. F9 records." },
+    { id: "zoom",        name: "ZoomX Smooth",         author: "spunkyinsaan", category: "Utility",     icon: "🔍", color: "#06b6d4", desc: "Smooth zoom with scroll adjustment. Hold C or Z to zoom." },
+    { id: "hitboxes",    name: "Combat Hitboxes",      author: "sootysplash",  category: "PvP",         icon: "🎯", color: "#f43f5e", desc: "Custom entity hitbox rendering for timing hits and reach." },
+    { id: "armor-hud",   name: "Uku's Armor HUD",      author: "uku",          category: "HUD",         icon: "🛡️", color: "#10b981", dep: "Needs ukulib (added for you)", desc: "Shows your armor durability next to the hotbar." },
+    { id: "appleskin",   name: "AppleSkin",            author: "squeek502",    category: "HUD",         icon: "🍎", color: "#ef4444", desc: "Shows hunger, saturation, and exhaustion values on the HUD." },
+    { id: "litematica",  name: "Litematica",           author: "masa",         category: "Utility",     icon: "📐", color: "#8b5cf6", dep: "Needs MaLiLib (added for you)", desc: "Load schematics as a ghost build and place it block by block." },
+    { id: "fullbright",  name: "Fullbright & Clear",   author: "Deepslate",    category: "Visuals",     icon: "☀️", color: "#f59e0b", desc: "Fullbright, low fire and shield, and no pumpkin blur." },
+    { id: "fps-hud",     name: "FPS & CPS Counter",    author: "Deepslate",    category: "HUD",         icon: "⚡", color: "#a594f9", desc: "Displays real-time frames and clicks per second on screen." },
+    { id: "ukulib",      name: "ukulib",               author: "uku",          category: "Libraries",   icon: "📦", color: "#6366f1", desc: "Library and config screens for uku's HUD and PvP mods." }
   ]
 };
