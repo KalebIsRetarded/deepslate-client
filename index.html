@@ -1,19 +1,130 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Silkscreen&display=swap" rel="stylesheet" />
-    <title>Deepslate - Minecraft in Your Browser</title>
-    <meta property="og:image" content="https://bolt.new/static/og_default.png" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://bolt.new/static/og_default.png" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0d12">
+  <meta name="description" content="Deepslate Client — your Minecraft experience, reimagined.">
+  <title>Deepslate Client</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">D</div>
+        <div class="brand-copy">
+          <div class="brand-name">DEEPSLATE</div>
+          <div class="brand-subtitle">CLIENT</div>
+        </div>
+      </div>
+
+      <div class="sidebar-label">WORKSPACE</div>
+
+      <nav class="side-nav">
+        <button class="nav-item active" data-route="home">
+          <span class="nav-icon">⌂</span><span>Home</span>
+        </button>
+        <button class="nav-item" data-route="play">
+          <span class="nav-icon">▶</span><span>Play</span>
+          <span class="nav-tag">1.21.11</span>
+        </button>
+        <button class="nav-item" data-route="mods">
+          <span class="nav-icon">▦</span><span>Mod Library</span>
+        </button>
+        <button class="nav-item" data-route="wardrobe">
+          <span class="nav-icon">◇</span><span>Wardrobe</span>
+        </button>
+        <button class="nav-item" data-route="servers">
+          <span class="nav-icon">◎</span><span>Servers</span>
+        </button>
+        <button class="nav-item" data-route="social">
+          <span class="nav-icon">♧</span><span>Social</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-label secondary-label">MORE</div>
+
+      <nav class="side-nav">
+        <button class="nav-item" data-route="browser">
+          <span class="nav-icon">▣</span><span>Browser</span>
+        </button>
+        <button class="nav-item" data-route="performance">
+          <span class="nav-icon">⌁</span><span>Performance</span>
+        </button>
+        <button class="nav-item" data-route="settings">
+          <span class="nav-icon">⚙</span><span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="profile-card">
+          <div class="avatar">D</div>
+          <div class="profile-info">
+            <strong>Player</strong>
+            <span>Local profile</span>
+          </div>
+          <span class="online-dot"></span>
+        </div>
+        <div class="sidebar-version">DEEPSLATE • BUILD 1.0</div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="top-tabs">
+          <button class="top-tab active" data-route="home">Home</button>
+          <button class="top-tab" data-route="play">Play</button>
+          <button class="top-tab" data-route="mods">Mods</button>
+          <button class="top-tab" data-route="wardrobe">Wardrobe</button>
+          <button class="top-tab" data-route="servers">Servers</button>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="connection-status">
+            <span class="status-dot"></span>
+            Launcher ready
+          </div>
+          <button class="icon-button" id="search-button" title="Search">⌕</button>
+          <button class="avatar small-avatar">D</button>
+        </div>
+      </header>
+
+      <div class="content-scroll">
+        <div id="page-content"></div>
+
+        <!-- This game frame is deliberately outside the replaceable page content.
+             It stays mounted while you switch between launcher sections. -->
+        <section id="game-stage" class="game-stage" hidden>
+          <div class="game-toolbar">
+            <div>
+              <span class="game-indicator"></span>
+              <strong>Minecraft 1.21.11</strong>
+              <span class="muted">Game workspace</span>
+            </div>
+            <button class="small-button" id="reload-game">Reload game</button>
+          </div>
+          <div class="game-frame-wrap" id="game-frame-wrap">
+            <div class="game-placeholder" id="game-placeholder">
+              <div class="game-placeholder-icon">▣</div>
+              <h2>Your world is waiting.</h2>
+              <p>Connect the Minecraft 1.21.11 game page to enable the Play workspace.</p>
+              <span>Game connection is configured privately by the launcher owner.</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
 </html>
