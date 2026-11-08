@@ -14,26 +14,26 @@
 <body>
   <header class="topbar">
     <div class="topbar-left">
-      <a class="brand" href="#" data-route="home">
+      <button type="button" class="brand" data-route="home" style="background:none;border:none;cursor:pointer;">
         <img class="brand-mark" src="favicon.svg" alt="Deepslate">
         <span class="brand-title">Deepslate</span>
-      </a>
+      </button>
       <nav class="topnav" id="topnav">
-        <a href="#" data-route="home">Home</a>
-        <a href="#" data-route="mods">Mods</a>
-        <a href="#" data-route="wardrobe">Wardrobe</a>
-        <a href="#" data-route="settings">Settings</a>
-        <a href="#" data-route="servers">Servers ▾</a>
+        <button type="button" data-route="home">Home</button>
+        <button type="button" data-route="mods">Mods</button>
+        <button type="button" data-route="wardrobe">Wardrobe</button>
+        <button type="button" data-route="settings">Settings</button>
+        <button type="button" data-route="servers">Servers</button>
       </nav>
     </div>
 
     <div class="topbar-right">
-      <button class="icon-pill" id="commandHint" title="Mods">🔍</button>
-      <div class="streak-pill" id="streakPill">🔥 1</div>
-      <a class="profile-pill" href="#" data-route="settings" id="profilePill">
+      <button type="button" class="icon-pill" id="commandHint" title="Search Mods">Search</button>
+      <div class="streak-pill" id="streakPill">1d</div>
+      <button type="button" class="profile-pill" data-route="settings" id="profilePill">
         <img id="navAvatar" src="favicon.svg" alt="">
         <span id="navUsername">Player</span>
-      </a>
+      </button>
     </div>
   </header>
 
