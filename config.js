@@ -4,11 +4,11 @@ window.DEEPSLATE_CONFIG = {
   DEFAULT_VERSION: "1.21.11",
 
   VERSIONS: [
-    { id: "1.21.11", label: "1.21.11 (Latest)", url: "" },
-    { id: "1.8.8",   label: "1.8.8 PvP (WASM)", url: "" }
+    { id: "1.21.11", label: "1.21.11 (Latest)", url: "/game/index.html" },
+    { id: "1.8.8",   label: "1.8.8 PvP (WASM)", url: "/game/index.html" }
   ],
 
-  GAME_URL: "",
+  GAME_URL: "/game/index.html",
 
   ENGINE: {
     name: "Deepslate Web Engine",
