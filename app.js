@@ -1,8 +1,9 @@
 (function () {
   "use strict";
   var C = window.DEEPSLATE_CONFIG || {};
-  var KEY = "deepslate.v9";
+  var KEY = "deepslate.v10";
   var ACCENTS = { periwinkle: "#a594f9", green: "#3ddc97", blue: "#4aa8ff", orange: "#ffa94d" };
+  var currentRoute = "home";
 
   function h(t, p) {
     var e = document.createElement(t);
@@ -26,6 +27,7 @@
     pose: "Idle", model: "Classic", skinData: ""
   };
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  function go(route) { currentRoute = route; render(); }
 
   function launch(ip) {
     var url = (C.GAME_URL || "").trim();
@@ -48,12 +50,17 @@
             h("button", { class: "play-main", onclick: function () { launch(); } }, h("strong", null, "PLAY " + S.version), h("span", null, "STANDARD ENGINE · READY")),
             h("button", { class: "play-drop", onclick: function () { S.version = S.version === "1.21.11" ? "1.8.8" : "1.21.11"; save(); render(); } }, "⌄")
           ),
-          h("div", { class: "hero-sub" }, count + " mods on · ", h("a", { href: "#/mods" }, "Manage mods"), " · ", h("a", { href: "#/servers" }, "Servers")),
+          h("div", { class: "hero-sub" },
+            count + " mods on · ",
+            h("a", { href: "#", onclick: function (e) { e.preventDefault(); go("mods"); } }, "Manage mods"),
+            " · ",
+            h("a", { href: "#", onclick: function (e) { e.preventDefault(); go("servers"); } }, "Servers")
+          ),
           h("div", { class: "hero-stats" }, h("span", null, h("b", null, "27"), " playing right now"), h("span", null, h("b", null, "1,000"), " in the last 24 hours"))
         ),
         h("div", { class: "partner-bar" },
           h("div", null, h("b", null, "Top servers"), h("small", { style: "display:block;color:var(--muted);" }, "Featured community servers ready for one-click join.")),
-          h("a", { class: "btn", href: "#/servers" }, "Browse servers")
+          h("button", { class: "btn", onclick: function () { go("servers"); } }, "Browse servers")
         )
       );
     },
@@ -112,7 +119,7 @@
       var fileIn = h("input", {
         type: "file", accept: "image/png", style: "display:none;",
         onchange: function (e) {
-          var f = e.target.files.slice ? null : e.target.files.item(0);
+          var f = e.target.files.item(0);
           if (!f) return;
           var r = new FileReader();
           r.onload = function () { S.skinData = r.result; save(); if (viewer) viewer.loadSkin(S.skinData); };
@@ -167,15 +174,25 @@
 
   function render() {
     document.documentElement.style.setProperty("--accent", ACCENTS[S.accent] || ACCENTS.periwinkle);
-    var route = (location.hash || "#/home").replace(/^#\//, "");
-    if (!pages[route]) route = "home";
-    document.querySelectorAll("#topnav a").forEach(function (a) { a.classList.toggle("active", a.getAttribute("data-route") === route); });
+    var route = pages[currentRoute] ? currentRoute : "home";
+    document.querySelectorAll("#topnav a").forEach(function (a) {
+      a.classList.toggle("active", a.getAttribute("data-route") === route);
+    });
     var v = document.getElementById("view");
     if (v) { v.innerHTML = ""; v.append(pages[route]()); }
     var u = document.getElementById("navUsername");
     if (u) u.textContent = S.name;
   }
 
-  window.addEventListener("hashchange", render);
+  document.querySelectorAll("[data-route]").forEach(function (el) {
+    el.addEventListener("click", function (e) {
+      e.preventDefault();
+      go(el.getAttribute("data-route"));
+    });
+  });
+
+  var cmdBtn = document.getElementById("commandHint");
+  if (cmdBtn) cmdBtn.addEventListener("click", function () { go("mods"); });
+
   render();
 })();
