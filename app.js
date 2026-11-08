@@ -4,7 +4,7 @@
 
   try {
     var C = window.DEEPSLATE_CONFIG || {};
-    var KEY = "deepslate.v14";
+    var KEY = "deepslate.v15";
 
     var ACCENTS = {
       periwinkle: "#a594f9",
@@ -22,7 +22,7 @@
         author: "Deepslate",
         category: "Performance",
         icon: "🟩",
-        desc: "Sodium-style video settings built for maximum browser FPS."
+        desc: "Performance improvements."
       },
       {
         id: "iris",
@@ -30,24 +30,23 @@
         author: "IrisShaders",
         category: "Visuals",
         icon: "🌈",
-        dep: "Needs Sodium (added for you)",
-        desc: "Load shader packs in the browser."
+        desc: "Shader support."
       },
       {
         id: "zoom",
         name: "ZoomX Smooth",
-        author: "spunkyinsaan",
+        author: "Deepslate",
         category: "Utility",
         icon: "🔍",
-        desc: "Smooth zoom with scroll adjustment. Hold C to zoom."
+        desc: "Smooth zoom with scroll adjustment."
       },
       {
         id: "hitboxes",
         name: "Combat Hitboxes",
-        author: "sootysplash",
+        author: "Deepslate",
         category: "PvP",
         icon: "🎯",
-        desc: "Custom entity hitbox rendering for timing hits and reach."
+        desc: "Custom entity hitbox rendering."
       },
       {
         id: "armor-hud",
@@ -55,7 +54,7 @@
         author: "uku",
         category: "HUD",
         icon: "🛡️",
-        desc: "Shows your armor durability next to the hotbar."
+        desc: "Shows armor durability."
       },
       {
         id: "fullbright",
@@ -63,7 +62,7 @@
         author: "Deepslate",
         category: "Visuals",
         icon: "☀️",
-        desc: "Fullbright, low fire and shield, and no pumpkin blur."
+        desc: "Fullbright and visual improvements."
       }
     ];
 
@@ -88,7 +87,9 @@
           });
         } else if (child != null && child !== false) {
           element.append(
-            child.nodeType ? child : document.createTextNode(String(child))
+            child.nodeType
+              ? child
+              : document.createTextNode(String(child))
           );
         }
       });
@@ -100,12 +101,20 @@
 
     try {
       S = JSON.parse(localStorage.getItem(KEY) || "null");
-    } catch (error) {}
+    } catch (error) {
+      console.warn("Could not load saved settings:", error);
+    }
 
     if (!S || typeof S !== "object") {
       S = {
         name: "Crux",
+        email: "",
+        status: "",
+        bio: "PvP main, builder, always down for bedwars",
+        banner: "#a594f9",
         accent: "periwinkle",
+        styleMode: "Minimal",
+        extraDark: false,
         version: C.DEFAULT_VERSION || "1.21.11",
         inst: "My instance 1",
         mods: {
@@ -120,22 +129,127 @@
         ],
         pose: "Idle",
         model: "Classic",
-        skin: ""
+        skin: "",
+        stTab: "My account",
+        prefs: {
+          friendReq: true,
+          whoAdd: "Everyone",
+          whoMsg: "Friends",
+          showOnline: true,
+          showServer: true,
+          dnd: false,
+          popups: true,
+          btnSound: true,
+          perfMode: false
+        }
       };
     }
 
-    if (!S.mods) S.mods = {};
-    if (!S.servers) S.servers = [];
+    S.prefs = S.prefs || {};
+    S.mods = S.mods || {};
+    S.servers = S.servers || [];
+
+    var DEFAULT_PREFS = {
+      friendReq: true,
+      whoAdd: "Everyone",
+      whoMsg: "Friends",
+      showOnline: true,
+      showServer: true,
+      dnd: false,
+      popups: true,
+      btnSound: true,
+      perfMode: false
+    };
+
+    Object.keys(DEFAULT_PREFS).forEach(function (key) {
+      if (typeof S.prefs[key] === "undefined") {
+        S.prefs[key] = DEFAULT_PREFS[key];
+      }
+    });
+
+    if (!S.name) S.name = "Crux";
+    if (!S.accent) S.accent = "periwinkle";
+    if (!S.banner) S.banner = "#a594f9";
+    if (!S.version) S.version = C.DEFAULT_VERSION || "1.21.11";
+    if (!S.inst) S.inst = "My instance 1";
+    if (!S.stTab) S.stTab = "My account";
 
     function save() {
       try {
         localStorage.setItem(KEY, JSON.stringify(S));
-      } catch (error) {}
+      } catch (error) {
+        console.warn("Could not save settings:", error);
+      }
     }
 
     function go(newRoute) {
       route = newRoute;
       render();
+    }
+
+    function toggleSwitch(key) {
+      return h("button", {
+        class: "st-toggle" + (S.prefs[key] ? " on" : ""),
+        type: "button",
+        "aria-pressed": String(!!S.prefs[key]),
+        onclick: function () {
+          S.prefs[key] = !S.prefs[key];
+          save();
+          render();
+        }
+      });
+    }
+
+    function segControl(key, options) {
+      return h(
+        "div",
+        { class: "st-seg" },
+        options.map(function (option) {
+          return h(
+            "button",
+            {
+              type: "button",
+              class: S.prefs[key] === option ? "active" : "",
+              onclick: function () {
+                S.prefs[key] = option;
+                save();
+                render();
+              }
+            },
+            option
+          );
+        })
+      );
+    }
+
+    function row(title, subtitle, control) {
+      return h(
+        "div",
+        { class: "setting-row" },
+
+        h(
+          "div",
+          null,
+          h(
+            "b",
+            {
+              style: "font-size:13.5px;display:block;"
+            },
+            title
+          ),
+          subtitle
+            ? h(
+                "small",
+                {
+                  style: "color:var(--muted);font-size:12px;"
+                },
+                subtitle
+              )
+            : null
+        ),
+
+        control
+      );
     }
 
     function launch(ip) {
@@ -158,6 +272,7 @@
         h(
           "div",
           { class: "bar" },
+
           h(
             "button",
             {
@@ -168,6 +283,7 @@
             },
             "← Exit"
           ),
+
           h("b", null, "Deepslate " + S.version)
         ),
 
@@ -179,6 +295,40 @@
       );
 
       document.getElementById("overlay").append(game);
+    }
+
+    function downloadFile(filename, content, type) {
+      var blob = new Blob([content], { type: type });
+      var url = URL.createObjectURL(blob);
+
+      var link = h("a", {
+        href: url,
+        download: filename
+      });
+
+      document.body.append(link);
+      link.click();
+      link.remove();
+
+      setTimeout(function () {
+        URL.revokeObjectURL(url);
+      }, 1000);
+    }
+
+    function exportOfflineHtml() {
+      var html =
+        "<!doctype html>" +
+        "<html><body style='background:#0b0b0e;color:#fff;font-family:sans-serif;padding:2rem;'>" +
+        "<h2>Deepslate Client Offline Backup</h2>" +
+        "<pre>" +
+        JSON.stringify(S, null, 2) +
+        "</pre></body></html>";
+
+      downloadFile(
+        "deepslate-client-offline.html",
+        html,
+        "text/html"
+      );
     }
 
     var pages = {
@@ -199,7 +349,7 @@
             h(
               "div",
               { class: "cr-inst-label" },
-              (S.inst || "MY INSTANCE 1").toUpperCase()
+              S.inst.toUpperCase()
             ),
 
             h(
@@ -214,8 +364,15 @@
                     launch();
                   }
                 },
+
                 h("strong", null, "PLAY " + S.version),
-                h("span", null, "STANDARD ENGINE · READY")
+
+                h(
+                  "span",
+                  null,
+                  (S.prefs.perfMode ? "PERFORMANCE" : "STANDARD") +
+                  " ENGINE · READY"
+                )
               ),
 
               h(
@@ -225,6 +382,7 @@
                   onclick: function () {
                     S.version =
                       S.version === "1.21.11" ? "1.8.8" : "1.21.11";
+
                     save();
                     render();
                   }
@@ -236,6 +394,7 @@
             h(
               "div",
               { class: "hero-sub" },
+
               count + " mods on · ",
 
               h(
@@ -268,7 +427,9 @@
             h(
               "div",
               { class: "hero-stats" },
+
               h("span", null, h("b", null, "27"), " playing right now"),
+
               h("span", null, h("b", null, "1,000"), " in the last 24 hours")
             )
           ),
@@ -280,7 +441,9 @@
             h(
               "div",
               null,
+
               h("b", null, "Top servers"),
+
               h(
                 "small",
                 {
@@ -323,8 +486,12 @@
         var list = all.filter(function (mod) {
           return (
             (S.filter === "All" || mod.category === S.filter) &&
-            (!S.search ||
-              mod.name.toLowerCase().indexOf(S.search.toLowerCase()) !== -1)
+            (
+              !S.search ||
+              String(mod.name || "").toLowerCase().indexOf(
+                S.search.toLowerCase()
+              ) !== -1
+            )
           );
         });
 
@@ -347,63 +514,6 @@
             "div",
             { class: "mods-header" },
             h("h2", { style: "font-size:18px;" }, "Browse mods")
-          ),
-
-          h(
-            "div",
-            { class: "mod-featured" },
-
-            h(
-              "div",
-              {
-                style: "display:flex;gap:14px;align-items:center;"
-              },
-
-              h(
-                "div",
-                {
-                  class: "mod-icon",
-                  style: "width:50px;height:50px;font-size:24px;"
-                },
-                "💎"
-              ),
-
-              h(
-                "div",
-                null,
-                h("b", null, "Deepslate Visuals "),
-
-                h(
-                  "span",
-                  {
-                    style: "font-size:11px;background:rgba(255,255,255,0.1);padding:2px 7px;border-radius:5px;"
-                  },
-                  "Official"
-                ),
-
-                h(
-                  "p",
-                  {
-                    style: "font-size:12.5px;color:var(--muted);margin-top:4px;"
-                  },
-                  "Custom skies, glass armor, smooth HUD, motion blur and more."
-                )
-              )
-            ),
-
-            h(
-              "button",
-              {
-                class: "btn primary",
-                onclick: function () {
-                  S.mods["fps-boost"] = true;
-                  S.mods["fullbright"] = true;
-                  save();
-                  render();
-                }
-              },
-              "+ Add to " + (S.inst || "Instance")
-            )
           ),
 
           h(
@@ -442,67 +552,57 @@
 
                 h(
                   "div",
-                  null,
+                  { class: "mod-top" },
 
                   h(
                     "div",
-                    { class: "mod-top" },
+                    {
+                      style: "display:flex;gap:10px;align-items:center;"
+                    },
 
                     h(
                       "div",
-                      {
-                        style: "display:flex;gap:10px;align-items:center;"
-                      },
-
-                      h(
-                        "div",
-                        { class: "mod-icon" },
-                        mod.icon || "🧩"
-                      ),
-
-                      h(
-                        "div",
-                        null,
-                        h(
-                          "b",
-                          { style: "font-size:14px;" },
-                          mod.name
-                        ),
-
-                        h(
-                          "small",
-                          {
-                            style: "display:block;color:var(--muted);font-size:11.5px;"
-                          },
-                          "by " +
-                            (mod.author || "Deepslate") +
-                            " · " +
-                            mod.category
-                        )
-                      )
+                      { class: "mod-icon" },
+                      mod.icon || "🧩"
                     ),
 
                     h(
-                      "button",
-                      {
-                        class: "btn " + (enabled ? "added" : ""),
-                        onclick: function () {
-                          S.mods[mod.id] = !enabled;
-                          save();
-                          render();
-                        }
-                      },
-                      enabled ? "✓ Added" : "+ Add"
+                      "div",
+                      null,
+
+                      h("b", null, mod.name),
+
+                      h(
+                        "small",
+                        {
+                          style: "display:block;color:var(--muted);"
+                        },
+                        (mod.author ? "by " + mod.author + " · " : "") +
+                        (mod.category || "Other")
+                      )
                     )
                   ),
 
                   h(
-                    "p",
+                    "button",
                     {
-                      style: "font-size:12.5px;color:var(--muted);margin-top:10px;"
+                      class: "btn " + (enabled ? "added" : ""),
+                      onclick: function () {
+                        S.mods[mod.id] = !enabled;
+                        save();
+                        render();
+                      }
                     },
-                    mod.desc
+                    enabled ? "✓ Added" : "+ Add"
                   )
+                ),
+
+                h(
+                  "p",
+                  {
+                    style: "font-size:12.5px;color:var(--muted);margin-top:8px;"
+                  },
+                  mod.desc || ""
                 )
               );
             })
@@ -525,7 +625,9 @@
               height: 360
             });
 
-            if (S.skin) viewer.loadSkin(S.skin);
+            if (S.skin) {
+              viewer.loadSkin(S.skin);
+            }
 
             viewer.controls.enableRotate = true;
             viewer.controls.enableZoom = true;
@@ -535,6 +637,7 @@
 
             viewer.animation =
               new window.skinview3d.IdleAnimation();
+
           } catch (error) {
             console.error("Skin viewer error:", error);
           }
@@ -547,6 +650,7 @@
 
           onchange: function (event) {
             var file = event.target.files.item(0);
+
             if (!file) return;
 
             var reader = new FileReader();
@@ -570,6 +674,7 @@
             { class: "wardrobe-stage" },
 
             h("b", null, S.name),
+
             canvas,
 
             h(
@@ -602,6 +707,7 @@
             },
 
             h("b", null, "Skin"),
+
             fileInput,
 
             h(
@@ -647,7 +753,7 @@
           "div",
           null,
 
-          (S.servers || []).map(function (server) {
+          S.servers.map(function (server) {
             return h(
               "div",
               {
@@ -658,7 +764,9 @@
               h(
                 "div",
                 null,
+
                 h("b", null, server.name),
+
                 h(
                   "small",
                   {
@@ -684,68 +792,795 @@
       },
 
       settings: function () {
-        var usernameInput = h("input", {
-          value: S.name || "Crux"
-        });
+        var tabs = [
+          {
+            id: "My account",
+            sub: "Your name, email and profile."
+          },
+          {
+            id: "Devices",
+            sub: "Everywhere you're signed in, including the game."
+          },
+          {
+            id: "Privacy & safety",
+            sub: "Who can reach you across devices and in-game."
+          },
+          {
+            id: "Notifications",
+            sub: "Pop-ups and sounds on this device."
+          },
+          {
+            id: "Sound",
+            sub: "Button sounds in the launcher on this device."
+          },
+          {
+            id: "Appearance",
+            sub: "How the launcher looks on this device."
+          },
+          {
+            id: "Game & sync",
+            sub: "How the game runs, and what follows you between devices."
+          },
+          {
+            id: "Your data",
+            sub: "Take a copy of your account, or delete it for good."
+          }
+        ];
+
+        var cur = tabs.filter(function (tab) {
+          return tab.id === S.stTab;
+        }).pop() || tabs[0];
+
+        var bioInput = h(
+          "textarea",
+          {
+            rows: "3",
+            style: "width:100%;background:var(--bg);border:1px solid var(--border-hi);color:#fff;padding:10px;border-radius:8px;font-family:inherit;font-size:13px;"
+          },
+          S.bio || ""
+        );
+
+        var banners = [
+          "#a594f9",
+          "#ec4899",
+          "#f43f5e",
+          "#f97316",
+          "#eab308",
+          "#22c55e",
+          "#14b8a6",
+          "#3b82f6"
+        ];
+
+        var bodies = {
+
+          "My account": function () {
+            return h(
+              "div",
+              null,
+
+              h(
+                "div",
+                {
+                  class: "st-section",
+                  style:
+                    "border-top:4px solid " +
+                    S.banner +
+                    ";display:flex;justify-content:space-between;align-items:center;"
+                },
+
+                h(
+                  "div",
+                  {
+                    style: "display:flex;gap:12px;align-items:center;"
+                  },
+
+                  h("img", {
+                    src: "favicon.svg",
+                    style: "width:42px;height:42px;"
+                  }),
+
+                  h(
+                    "div",
+                    null,
+
+                    h(
+                      "b",
+                      { style: "font-size:16px;" },
+                      S.name
+                    ),
+
+                    h(
+                      "small",
+                      {
+                        style: "display:block;color:var(--muted);"
+                      },
+                      "Deepslate account"
+                    )
+                  )
+                ),
+
+                h(
+                  "button",
+                  {
+                    class: "btn",
+                    onclick: function () {
+                      go("wardrobe");
+                    }
+                  },
+                  "🧥 Wardrobe"
+                )
+              ),
+
+              h(
+                "div",
+                { class: "st-section" },
+
+                h(
+                  "div",
+                  { class: "st-sec-title" },
+                  "Sign-in details"
+                ),
+
+                row(
+                  "Username",
+                  S.name + " · You can change it once every 30 days",
+
+                  h(
+                    "button",
+                    {
+                      class: "btn",
+                      onclick: function () {
+                        var newName = prompt(
+                          "New username:",
+                          S.name
+                        );
+
+                        if (newName && newName.trim()) {
+                          S.name = newName.trim();
+                          save();
+                          render();
+                        }
+                      }
+                    },
+                    "Change"
+                  )
+                ),
+
+                row(
+                  "Email",
+                  S.email || "Not added. Add one so you can sign in with it too.",
+
+                  h(
+                    "button",
+                    {
+                      class: "btn",
+                      onclick: function () {
+                        var email = prompt(
+                          "Enter email:",
+                          S.email
+                        );
+
+                        if (email !== null) {
+                          S.email = email.trim();
+                          save();
+                          render();
+                        }
+                      }
+                    },
+                    S.email ? "Edit email" : "Add email"
+                  )
+                )
+              ),
+
+              h(
+                "div",
+                { class: "st-section" },
+
+                h(
+                  "div",
+                  { class: "st-sec-title" },
+                  "Profile"
+                ),
+
+                row(
+                  "Status",
+                  S.status || "No status set. Tell friends what you're up to.",
+
+                  h(
+                    "button",
+                    {
+                      class: "btn",
+                      onclick: function () {
+                        var status = prompt(
+                          "Set status:",
+                          S.status
+                        );
+
+                        if (status !== null) {
+                          S.status = status.trim();
+                          save();
+                          render();
+                        }
+                      }
+                    },
+                    "Set status"
+                  )
+                ),
+
+                h(
+                  "div",
+                  {
+                    style: "padding:12px 0;border-bottom:1px solid var(--border);"
+                  },
+
+                  h(
+                    "b",
+                    {
+                      style: "font-size:13.5px;display:block;margin-bottom:6px;"
+                    },
+                    "Bio"
+                  ),
+
+                  bioInput,
+
+                  h(
+                    "div",
+                    {
+                      style: "text-align:right;margin-top:8px;"
+                    },
+
+                    h(
+                      "button",
+                      {
+                        class: "btn",
+                        onclick: function () {
+                          S.bio = bioInput.value;
+                          save();
+                          alert("Bio saved!");
+                        }
+                      },
+                      "Save bio"
+                    )
+                  )
+                ),
+
+                h(
+                  "div",
+                  { style: "padding-top:12px;" },
+
+                  h(
+                    "b",
+                    {
+                      style: "font-size:13.5px;display:block;margin-bottom:8px;"
+                    },
+                    "Banner"
+                  ),
+
+                  h(
+                    "div",
+                    { class: "banner-swatches" },
+
+                    banners.map(function (color) {
+                      return h(
+                        "button",
+                        {
+                          class:
+                            "swatch" +
+                            (S.banner === color ? " active" : ""),
+                          style: "background:" + color + ";",
+                          onclick: function () {
+                            S.banner = color;
+                            save();
+                            render();
+                          }
+                        }
+                      );
+                    })
+                  )
+                )
+              )
+            );
+          },
+
+          "Devices": function () {
+            return h(
+              "div",
+              { class: "st-section" },
+
+              h(
+                "div",
+                {
+                  style: "display:flex;align-items:center;gap:12px;"
+                },
+
+                h(
+                  "span",
+                  { style: "font-size:22px;" },
+                  "💻"
+                ),
+
+                h(
+                  "div",
+                  null,
+
+                  h("b", null, "Current browser"),
+
+                  h(
+                    "span",
+                    {
+                      style: "font-size:11px;background:rgba(61,220,151,0.16);color:#3ddc97;padding:2px 7px;border-radius:5px;"
+                    },
+                    "This device"
+                  ),
+
+                  h(
+                    "small",
+                    {
+                      style: "display:block;color:var(--muted);margin-top:3px;"
+                    },
+                    "This browser's local profile"
+                  )
+                )
+              )
+            );
+          },
+
+          "Privacy & safety": function () {
+            return h(
+              "div",
+              null,
+
+              h(
+                "div",
+                { class: "st-section" },
+
+                h(
+                  "div",
+                  { class: "st-sec-title" },
+                  "Friends & Messages"
+                ),
+
+                row(
+                  "Friend requests",
+                  "People can send you friend requests.",
+                  toggleSwitch("friendReq")
+                ),
+
+                row(
+                  "Who can add you",
+                  "Friends of friends means someone you both know.",
+                  segControl("whoAdd", [
+                    "Everyone",
+                    "Friends of friends"
+                  ])
+                ),
+
+                row(
+                  "Who can message you",
+                  "Choose who can message you.",
+                  segControl("whoMsg", [
+                    "Friends",
+                    "Everyone"
+                  ])
+                )
+              ),
+
+              h(
+                "div",
+                { class: "st-section" },
+
+                h(
+                  "div",
+                  { class: "st-sec-title" },
+                  "Online status"
+                ),
+
+                row(
+                  "Show when I'm online",
+                  "Friends see when you're online and what you're playing.",
+                  toggleSwitch("showOnline")
+                ),
+
+                row(
+                  "Show which server I'm on",
+                  "Friends can press Join to play with you.",
+                  toggleSwitch("showServer")
+                )
+              )
+            );
+          },
+
+          "Notifications": function () {
+            return h(
+              "div",
+              { class: "st-section" },
+
+              h(
+                "div",
+                { class: "st-sec-title" },
+                "General"
+              ),
+
+              row(
+                "Do not disturb",
+                "No pop-ups or sounds. Messages still arrive.",
+                toggleSwitch("dnd")
+              ),
+
+              row(
+                "Pop-up notifications",
+                "New messages appear in the top right.",
+                toggleSwitch("popups")
+              )
+            );
+          },
+
+          "Sound": function () {
+            return h(
+              "div",
+              { class: "st-section" },
+
+              h(
+                "div",
+                { class: "st-sec-title" },
+                "Interface"
+              ),
+
+              row(
+                "Button sounds",
+                "Soft clicks when you press buttons and switches.",
+                toggleSwitch("btnSound")
+              )
+            );
+          },
+
+          "Appearance": function () {
+            return h(
+              "div",
+              null,
+
+              h(
+                "div",
+                { class: "st-section" },
+
+                h(
+                  "div",
+                  { class: "st-sec-title" },
+                  "Style"
+                ),
+
+                h(
+                  "div",
+                  { class: "style-cards" },
+
+                  [
+                    {
+                      id: "Minimal",
+                      sub: "Top bar, big Play button, plain dark"
+                    },
+                    {
+                      id: "Glass",
+                      sub: "Frosted panels over subtle glow"
+                    },
+                    {
+                      id: "Classic",
+                      sub: "Solid dark panels"
+                    }
+                  ].map(function (styleOption) {
+                    return h(
+                      "button",
+                      {
+                        class:
+                          "style-card" +
+                          (S.styleMode === styleOption.id
+                            ? " active"
+                            : ""),
+                        onclick: function () {
+                          S.styleMode = styleOption.id;
+                          save();
+                          render();
+                        }
+                      },
+
+                      h(
+                        "b",
+                        {
+                          style: "display:block;margin-bottom:4px;"
+                        },
+                        styleOption.id
+                      ),
+
+                      h(
+                        "small",
+                        {
+                          style: "color:var(--muted);font-size:11.5px;"
+                        },
+                        styleOption.sub
+                      )
+                    );
+                  })
+                )
+              ),
+
+              h(
+                "div",
+                { class: "st-section" },
+
+                h(
+                  "div",
+                  { class: "st-sec-title" },
+                  "Background & Accent"
+                ),
+
+                row(
+                  "Extra dark",
+                  "Pure black background. Looks great on OLED screens.",
+
+                  h(
+                    "button",
+                    {
+                      class:
+                        "st-toggle" +
+                        (S.extraDark ? " on" : ""),
+                      onclick: function () {
+                        S.extraDark = !S.extraDark;
+                        save();
+                        render();
+                      }
+                    }
+                  )
+                ),
+
+                row(
+                  "Accent color",
+                  "Choose launcher highlight tint.",
+
+                  h(
+                    "div",
+                    {
+                      style: "display:flex;gap:6px;flex-wrap:wrap;"
+                    },
+
+                    Object.keys(ACCENTS).map(function (key) {
+                      return h(
+                        "button",
+                        {
+                          class:
+                            "btn" +
+                            (S.accent === key ? " primary" : ""),
+                          onclick: function () {
+                            S.accent = key;
+                            save();
+                            render();
+                          }
+                        },
+                        key
+                      );
+                    })
+                  )
+                )
+              )
+            );
+          },
+
+          "Game & sync": function () {
+            return h(
+              "div",
+              null,
+
+              h(
+                "div",
+                { class: "st-section" },
+
+                h(
+                  "div",
+                  { class: "st-sec-title" },
+                  "Game"
+                ),
+
+                row(
+                  "Performance mode",
+                  "Lower resolution and smoother chunk loading for more FPS.",
+                  toggleSwitch("perfMode")
+                ),
+
+                row(
+                  "Skin and cape",
+                  "Pick your look and see it move in 3D.",
+
+                  h(
+                    "button",
+                    {
+                      class: "btn",
+                      onclick: function () {
+                        go("wardrobe");
+                      }
+                    },
+                    "🧥 Open Wardrobe"
+                  )
+                )
+              ),
+
+              h(
+                "div",
+                { class: "st-section" },
+
+                h(
+                  "div",
+                  { class: "st-sec-title" },
+                  "About"
+                ),
+
+                h(
+                  "p",
+                  {
+                    style: "font-size:12.5px;color:var(--muted);margin-bottom:12px;"
+                  },
+                  "Deepslate Client · Minecraft " +
+                  S.version +
+                  " · Browser Web Engine"
+                ),
+
+                h(
+                  "button",
+                  {
+                    class: "btn",
+                    onclick: exportOfflineHtml
+                  },
+                  "↓ Download the client"
+                )
+              )
+            );
+          },
+
+          "Your data": function () {
+            return h(
+              "div",
+              null,
+
+              h(
+                "div",
+                { class: "st-section" },
+
+                h(
+                  "div",
+                  { class: "st-sec-title" },
+                  "Download your data"
+                ),
+
+                row(
+                  "Account copy",
+                  "Your profile, settings, mods, and servers as one JSON file.",
+
+                  h(
+                    "button",
+                    {
+                      class: "btn",
+                      onclick: function () {
+                        downloadFile(
+                          "deepslate-account-data.json",
+                          JSON.stringify(S, null, 2),
+                          "application/json"
+                        );
+                      }
+                    },
+                    "↓ Download"
+                  )
+                )
+              ),
+
+              h(
+                "div",
+                { class: "st-section" },
+
+                h(
+                  "div",
+                  { class: "st-sec-title" },
+                  "Reset local data"
+                ),
+
+                h(
+                  "p",
+                  {
+                    style: "font-size:12.5px;color:var(--muted);margin-bottom:12px;"
+                  },
+                  "Clears your local profile, saved servers, and mod preferences from this browser."
+                ),
+
+                h(
+                  "button",
+                  {
+                    class: "btn danger",
+                    onclick: function () {
+                      if (confirm("Reset all Deepslate data on this browser?")) {
+                        localStorage.removeItem(KEY);
+                        location.reload();
+                      }
+                    }
+                  },
+                  "🗑️ Reset my data"
+                )
+              )
+            );
+          }
+        };
 
         return h(
           "div",
-          { class: "card" },
+          { class: "settings-layout" },
 
           h(
             "div",
-            { class: "setting-row" },
-
-            h("b", null, "Username"),
+            { class: "settings-nav" },
 
             h(
               "div",
-              { style: "display:flex;gap:8px;" },
+              { class: "st-user-card" },
 
-              usernameInput,
+              h("img", {
+                src: "favicon.svg",
+                alt: ""
+              }),
 
               h(
+                "div",
+                null,
+
+                h(
+                  "b",
+                  {
+                    style: "font-size:13.5px;display:block;"
+                  },
+                  S.name
+                ),
+
+                h(
+                  "small",
+                  {
+                    style: "color:var(--muted);font-size:11.5px;"
+                  },
+                  "Deepslate account"
+                )
+              )
+            ),
+
+            tabs.map(function (tab) {
+              return h(
                 "button",
                 {
-                  class: "btn",
+                  class: S.stTab === tab.id ? "active" : "",
                   onclick: function () {
-                    S.name = usernameInput.value || "Crux";
+                    S.stTab = tab.id;
                     save();
                     render();
                   }
                 },
-                "Save"
-              )
-            )
+                tab.id
+              );
+            })
           ),
 
           h(
             "div",
-            { class: "setting-row" },
-
-            h("b", null, "Accent"),
+            null,
 
             h(
-              "div",
-              { style: "display:flex;gap:6px;" },
+              "h2",
+              {
+                style: "font-size:20px;margin-bottom:4px;"
+              },
+              cur.id
+            ),
 
-              Object.keys(ACCENTS).map(function (key) {
-                return h(
-                  "button",
-                  {
-                    class:
-                      "btn" +
-                      (S.accent === key ? " primary" : ""),
-                    onclick: function () {
-                      S.accent = key;
-                      save();
-                      render();
-                    }
-                  },
-                  key
-                );
-              })
-            )
+            h(
+              "p",
+              {
+                style: "color:var(--muted);font-size:13px;margin-bottom:18px;"
+              },
+              cur.sub
+            ),
+
+            (bodies[cur.id] || bodies["My account"])()
           )
         );
       }
@@ -755,6 +1590,16 @@
       document.documentElement.style.setProperty(
         "--accent",
         ACCENTS[S.accent] || ACCENTS.periwinkle
+      );
+
+      document.body.classList.toggle(
+        "extra-dark",
+        !!S.extraDark
+      );
+
+      document.body.classList.toggle(
+        "theme-glass",
+        S.styleMode === "Glass"
       );
 
       var currentRoute = pages[route] ? route : "home";
@@ -771,7 +1616,7 @@
       if (view) {
         view.innerHTML = "";
 
-        // FIX: Render the actual page instead of the undefined "pagesr".
+        // FIXED: Render the selected page instead of undefined pagesr.
         view.append(pages[currentRoute]());
       }
 
@@ -797,6 +1642,7 @@
       });
     }
 
+    save();
     render();
 
   } catch (error) {
@@ -806,8 +1652,11 @@
 
     view.innerHTML = "";
 
-    var errorMessage = document.createElement("p");
-    errorMessage.style.color = "#ff6b6b";
+    var errorMessage = document.createElement("div");
+
+    errorMessage.style.cssText =
+      "padding:20px;color:#ff6b6b;font-family:monospace;";
+
     errorMessage.textContent =
       "Deepslate Client error: " + error.message;
 
