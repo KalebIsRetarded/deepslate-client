@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0d13">
+<meta name="description" content="Deepslate Client - a dark, modern Minecraft 1.21.11 browser launcher.">
+<title>Deepslate Client</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="side" id="side" aria-label="Main navigation">
+    <a class="brand" href="#/home">
+      <svg viewBox="0 0 64 64" width="34" height="34" aria-hidden="true"><path d="M32 6 56 19v26L32 58 8 45V19z" fill="#232938" stroke="var(--accent)" stroke-width="3" stroke-linejoin="round"/><path d="M32 6v26m0 0 24-13M32 32 8 19m24 13v26" stroke="var(--accent)" stroke-width="2" opacity=".5"/></svg>
+      <span>DEEPSLATE<small>CLIENT</small></span>
+    </a>
+    <nav>
+      <p class="nav-h">Launcher</p>
+      <a href="#/home" data-route="home"><i>⌂</i>Home</a>
+      <a href="#/instances" data-route="instances"><i>▦</i>Instances</a>
+      <p class="nav-h">Library</p>
+      <a href="#/mods" data-route="mods"><i>◇</i>Mod Library</a>
+      <a href="#/modpacks" data-route="modpacks"><i>▤</i>Modpacks</a>
+      <a href="#/servers" data-route="servers"><i>◎</i>Servers</a>
+      <p class="nav-h">Preferences</p>
+      <a href="#/profile" data-route="profile"><i>◉</i>Profile</a>
+      <a href="#/settings" data-route="settings"><i>⚙</i>Settings</a>
+    </nav>
+    <p class="side-foot">Independent community project.<br>Not affiliated with Mojang or Microsoft.</p>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+  <main>
+    <header class="top">
+      <button class="icon-btn menu" id="menuBtn" aria-label="Open menu">☰</button>
+      <h1 id="pageTitle">Home</h1>
+      <span class="pill" id="statusPill"></span>
+    </header>
+    <div id="view" class="view"></div>
+    <footer class="foot">DEEPSLATE CLIENT · INDEPENDENT COMMUNITY PROJECT</footer>
+  </main>
+</div>
+<div id="toasts" aria-live="polite"></div>
+<div id="overlay"></div>
+<noscript><p style="padding:2rem;color:#fff">Deepslate Client needs JavaScript enabled.</p></noscript>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
