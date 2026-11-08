@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Deepslate Engine</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { overflow:hidden; background:#0b0b0e; font-family:monospace; color:#fff; user-select:none; }
+    #hud { position:fixed; top:12px; left:12px; background:rgba(0,0,0,0.55); padding:10px 14px; border-radius:8px; font-size:12px; line-height:1.5; pointer-events:none; }
+    #cross { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); font-size:20px; color:rgba(255,255,255,0.8); pointer-events:none; }
+    #bar { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); display:flex; gap:8px; background:rgba(0,0,0,0.65); padding:8px; border-radius:10px; }
+    .slot { width:44px; height:44px; border-radius:6px; border:2px solid rgba(255,255,255,0.2); display:grid; place-items:center; font-size:11px; font-weight:700; }
+    .slot.active { border-color:#a594f9; transform:scale(1.08); }
+    #lock { position:fixed; inset:0; background:rgba(11,11,14,0.82); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div id="hud"></div>
+  <div id="cross">+</div>
+  <div id="bar"></div>
+  <div id="lock">
+    <h2 id="title">Deepslate Engine Ready</h2>
+    <p style="color:#a1a1aa;font-size:13px;">Click anywhere to play · WASD move · Space jump · Left-click break · Right-click place · 1-4 blocks</p>
+  </div>
+
+  <script src="https://unpkg.com"></script>
+  <script>
+    var q = new URLSearchParams(location.search);
+    var user = q.get("username") || "Player";
+    var ver = q.get("deepslateVersion") || "1.21.11";
+    var mods = q.get("deepslateMods") || "Sodium";
+    document.getElementById("title").textContent = "Deepslate " + ver + " · " + user;
+
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x78a7ff);
+    scene.fog = new THREE.Fog(0x78a7ff, 25, 85);
+
+    var camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 200);
+    camera.position.set(0, 6, 8);
+    var renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    var sun = new THREE.DirectionalLight(0xffffff, 0.8);
+    sun.position.set(20, 40, 15);
+    scene.add(sun);
+
+    var BLOCKS = [
+      { name: "Grass", color: 0x4caf50 },
+      { name: "Deepslate", color: 0x3b3f46 },
+      { name: "Planks", color: 0xb5894c },
+      { name: "Amethyst", color: 0xa594f9 }
+    ];
+    var sel = 0;
+    var mats = BLOCKS.map(function (b) { return new THREE.MeshLambertMaterial({ color: b.color }); });
+    var geo = new THREE.BoxGeometry(1, 1, 1);
+    var meshes = [];
+
+    function addBlock(x, y, z, type) {
+      var m = new THREE.Mesh(geo, mats[type]);
+      m.position.set(x, y, z);
+      scene.add(m);
+      meshes.push(m);
+    }
+
+    for (var x = -14; x <= 14; x++) {
+      for (var z = -14; z <= 14; z++) {
+        var h = Math.round(Math.sin(x * 0.25) * Math.cos(z * 0.25) * 1.5);
+        addBlock(x, h, z, 0);
+        addBlock(x, h - 1, z, 1);
+      }
+    }
+
+    var bar = document.getElementById("bar");
+    function drawBar() {
+      bar.innerHTML = "";
+      BLOCKS.forEach(function (b, i) {
+        var d = document.createElement("div");
+        d.className = "slot" + (i === sel ? " active" : "");
+        d.style.background = "#" + b.color.toString(16).padStart(6, "0");
+        d.textContent = (i + 1);
+        bar.appendChild(d);
+      });
+    }
+    drawBar();
+
+    var yaw = 0, pitch = 0, vy = 0, onGround = false, keys = {};
+    var lock = document.getElementById("lock");
+    lock.addEventListener("click", function () { document.body.requestPointerLock(); });
+    document.addEventListener("pointerlockchange", function () {
+      lock.style.display = document.pointerLockElement ? "none" : "flex";
+    });
+    document.addEventListener("mousemove", function (e) {
+      if (!document.pointerLockElement) return;
+      yaw -= e.movementX * 0.0022;
+      pitch = Math.max(-1.5, Math.min(1.5, pitch - e.movementY * 0.0022));
+    });
+    document.addEventListener("keydown", function (e) {
+      keys[e.code] = true;
+      if (e.code === "Digit1") { sel = 0; drawBar(); }
+      if (e.code === "Digit2") { sel = 1; drawBar(); }
+      if (e.code === "Digit3") { sel = 2; drawBar(); }
+      if (e.code === "Digit4") { sel = 3; drawBar(); }
+    });
+    document.addEventListener("keyup", function (e) { keys[e.code] = false; });
+
+    var ray = new THREE.Raycaster();
+    document.addEventListener("mousedown", function (e) {
+      if (!document.pointerLockElement) return;
+      ray.setFromCamera(new THREE.Vector2(0, 0), camera);
+      var hits = ray.intersectObjects(meshes);
+      if (!hits.length) return;
+      var hit = hits.slice(0, 1).pop();
+      if (hit.distance > 7) return;
+      if (e.button === 0) {
+        scene.remove(hit.object);
+        meshes = meshes.filter(function (m) { return m !== hit.object; });
+      } else if (e.button === 2) {
+        var p = hit.object.position.clone().add(hit.face.normal);
+        addBlock(p.x, p.y, p.z, sel);
+      }
+    });
+    document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+    var last = performance.now(), frames = 0, fps = 60;
+    function loop(now) {
+      requestAnimationFrame(loop);
+      frames++;
+      if (now - last >= 500) { fps = Math.round((frames * 1000) / (now - last)); frames = 0; last = now; }
+
+      var fwd = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw));
+      var right = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
+      var speed = 0.14;
+      if (keys["KeyW"]) camera.position.addScaledVector(fwd, speed);
+      if (keys["KeyS"]) camera.position.addScaledVector(fwd, -speed);
+      if (keys["KeyD"]) camera.position.addScaledVector(right, speed);
+      if (keys["KeyA"]) camera.position.addScaledVector(right, -speed);
+
+      vy -= 0.015;
+      camera.position.y += vy;
+      if (camera.position.y < 3.5) { camera.position.y = 3.5; vy = 0; onGround = true; }
+      if (keys["Space"] && onGround) { vy = 0.28; onGround = false; }
+
+      camera.rotation.order = "YXZ";
+      camera.rotation.y = yaw;
+      camera.rotation.x = pitch;
+
+      document.getElementById("hud").innerHTML =
+        "<b>Deepslate " + ver + "</b> · " + user + "<br>" +
+        fps + " FPS · Mods: " + mods + "<br>" +
+        "XYZ: " + camera.position.x.toFixed(1) + " / " + camera.position.y.toFixed(1) + " / " + camera.position.z.toFixed(1);
+
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(loop);
+    window.addEventListener("resize", function () {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    });
+  </script>
+</body>
+</html>
