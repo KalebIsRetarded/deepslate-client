@@ -1,7 +1,7 @@
 /* Deepslate Client - Complete Chromium-style Launcher Logic */
 (function () {
   "use strict";
-  var C = window.DEEPSLATE_CONFIG;
+  var C = window.DEEPSLATE_CONFIG || {};
   var KEY = "deepslate.v4";
   var ACCENTS = { green: "#3ddc97", blue: "#4aa8ff", purple: "#a78bfa", orange: "#ffa94d" };
 
@@ -86,7 +86,9 @@
     if (!Array.isArray(d.instances) || !d.instances.length) {
       var x = defaults(); d.instances = x.instances; d.active = x.active;
     }
-    if (!d.instances.some(function (i) { return i.id === d.active; })) d.active = d.instances[0].id;
+    if (!d.instances.some(function (i) { return i.id === d.active; })) {
+      d.active = d.instances[0].id;
+    }
     return d;
   })();
 
@@ -99,7 +101,8 @@
     save();
   }
   function inst() {
-    return S.instances.filter(function (i) { return i.id === S.active; })[0] || S.instances[0];
+    var matches = S.instances.filter(function (i) { return i.id === S.active; });
+    return matches[0] || S.instances[0];
   }
   function confirmDel(msg) {
     return !S.settings.confirmDeletes || window.confirm(msg);
@@ -108,8 +111,8 @@
   /* ---------- game connection & Chromium launch bubble ---------- */
   function getVersionObj(verId) {
     var id = verId || inst().version || C.DEFAULT_VERSION || C.VERSION;
-    var found = (C.VERSIONS || []).filter(function (v) { return v.id === id; })[0];
-    return found || { id: id, label: id, url: C.GAME_URL || "" };
+    var found = (C.VERSIONS || []).filter(function (v) { return v.id === id; });
+    return found[0] || { id: id, label: id, url: C.GAME_URL || "" };
   }
 
   function resolveGameUrl(verId) {
@@ -145,7 +148,6 @@
     if (mods.length) u.searchParams.set("deepslateMods", mods.map(function (m) { return m.id; }).join(","));
     if (opts.serverIp) u.searchParams.set("server", opts.serverIp);
 
-    // Chromium-style non-blocking bottom progress bubble
     var start = Date.now();
     var bubble = h("div", {
       style: "position:fixed;bottom:20px;right:20px;z-index:9999;background:#11171a;border:1px solid #2b3940;padding:12px 16px;border-radius:12px;display:flex;align-items:center;gap:12px;box-shadow:0 12px 32px rgba(0,0,0,.6);color:#fff;font-size:13px;"
@@ -222,6 +224,8 @@
 
   function exportOfflineHtml() {
     var snapshot = JSON.stringify(S);
+    var openScript = "<" + "script>";
+    var closeScript = "<" + "/script>";
     var html = "<!doctype html><html><head><meta charset='utf-8'><title>Deepslate Client Offline</title></head>" +
       "<body style='background:#0a0e10;color:#fff;font-family:sans-serif;padding:2rem;'>" +
       "<h2>Deepslate Client — Offline Backup</h2>" +
@@ -229,7 +233,7 @@
       "<p>Your instances, mod toggles, and server list are embedded below.</p>" +
 Use code with caution.
 "" + JSON.stringify(S, null, 2) + "" +
-"localStorage.setItem('" + KEY + "'," + JSON.stringify(snapshot) + ");</script>" +
+openScript + "localStorage.setItem('" + KEY + "'," + JSON.stringify(snapshot) + ");" + closeScript +
 "";
 var blob = new Blob([html], { type: "text/html" });
 var a = h("a", { href: URL.createObjectURL(blob), download: "deepslate-offline-" + (C.APP_VERSION || "0.4.0") + ".html" });
@@ -252,7 +256,7 @@ return h("option", { value: i.id, selected: i.id === S.active }, i.name);
 var verSel = h("select", {
 "aria-label": "Minecraft Version",
 onchange: function () { activeInst.version = verSel.value; save(); toast("Version: " + verSel.value); render(); }
-}, (C.VERSIONS || [{ id: C.VERSION, label: C.VERSION }]).map(function (v) {
+}, (C.VERSIONS || [{ id: C.VERSION || "1.21.11", label: C.VERSION || "1.21.11" }]).map(function (v) {
 return h("option", { value: v.id, selected: v.id === (activeInst.version || C.DEFAULT_VERSION) }, v.label);
 }));
 return h("div", null,
@@ -260,7 +264,7 @@ h("section", { class: "hero" },
 h("div", { class: "logo" }, svgLogo(76)),
 h("h2", null, "DEEP", h("span", null, "SLATE")),
 h("p", null, "Browser-based Minecraft client with instant mod toggles and one-click server join."),
-h("button", { class: "play", onclick: function () { launch(); } }, "▶ PLAY " + (activeInst.version || C.DEFAULT_VERSION)),
+h("button", { class: "play", onclick: function () { launch(); } }, "▶ PLAY " + (activeInst.version || C.DEFAULT_VERSION || "1.21.11")),
 h("div", { class: "hero-row" },
 h("span", { class: "chip" }, "Version:"), verSel,
 h("span", { class: "chip" }, "Profile:"), instSel,
@@ -292,7 +296,7 @@ return h("div", { class: "row" }, h("div", { class: "grow" }, a.text, h("small",
 };
 pages.instances = function () {
 var nameIn = h("input", { type: "text", placeholder: "New profile name (e.g. Bedwars 1.8.8)" });
-var verIn = h("select", null, (C.VERSIONS || [{ id: C.VERSION, label: C.VERSION }]).map(function (v) {
+var verIn = h("select", null, (C.VERSIONS || [{ id: C.VERSION || "1.21.11", label: C.VERSION || "1.21.11" }]).map(function (v) {
 return h("option", { value: v.id }, v.label);
 }));
 function createInst() {
@@ -492,12 +496,11 @@ h("button", { class: "btn sm primary", onclick: exportOfflineHtml }, "Download .
 };
 function stat(n, label) { return h("div", { class: "card stat" }, h("b", null, n), h("span", null, label)); }
 function svgLogo(s) {
-var img = h("img", {
+return h("img", {
 src: "minecraft.wiki",
 alt: "Deepslate",
 style: "width:" + s + "px;height:" + s + "px;image-rendering:pixelated;"
 });
-return img;
 }
 /* ---------- Command Palette (Cmd+K / Ctrl+K) ---------- */
 function openCommandPalette() {
@@ -559,7 +562,6 @@ view.innerHTML = "";
 view.append(pagesroute);
 }
 }
-// Mobile sidebar & keyboard shortcuts
 var side = document.getElementById("side");
 var scrim = document.getElementById("scrim");
 var menuBtn = document.getElementById("menuBtn");
@@ -578,7 +580,6 @@ openCommandPalette();
 window.addEventListener("hashchange", render);
 applyTheme();
 render();
-// Auto-detect ?play= share links
 var params = new URLSearchParams(location.search);
 var playIp = params.get("play");
 if (playIp) {
