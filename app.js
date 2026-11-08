@@ -1,7 +1,7 @@
 (function () {
   "use strict";
   var C = window.DEEPSLATE_CONFIG || {};
-  var KEY = "deepslate.v8";
+  var KEY = "deepslate.v9";
   var ACCENTS = { periwinkle: "#a594f9", green: "#3ddc97", blue: "#4aa8ff", orange: "#ffa94d" };
 
   function h(t, p) {
@@ -23,7 +23,7 @@
     name: "Crux", accent: "periwinkle", version: C.DEFAULT_VERSION || "1.21.11",
     mods: { "fps-boost": true, "zoom": true },
     servers: [{ name: "ArchMC", ip: "wss://mc.arch.lol" }, { name: "ZythMC", ip: "wss://play.zyth.me" }],
-    pose: "Idle"
+    pose: "Idle", model: "Classic", skinData: ""
   };
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -68,17 +68,83 @@
       }));
     },
     wardrobe: function () {
-      var inp = h("input", { placeholder: "Minecraft username" });
-      return h("div", { class: "wardrobe-layout" },
-        h("div", { class: "wardrobe-stage" },
-          h("b", null, S.name),
-          h("img", { src: "favicon.svg", style: "height:140px;margin:20px 0;" }),
-          h("div", { class: "pose-bar" }, ["Idle", "Walk", "Run", "Wave", "Crouch"].map(function (p) {
-            return h("button", { class: "pose-btn" + (S.pose === p ? " active" : ""), onclick: function () { S.pose = p; render(); } }, p);
-          }))
-        ),
-        h("div", { class: "card" }, h("b", null, "Player Identity"), h("div", { style: "display:flex;gap:8px;margin-top:10px;" }, inp, h("button", { class: "btn primary", onclick: function () { if (!inp.value) return; S.name = inp.value; save(); render(); } }, "Save")))
+      var wrap = h("div", { class: "wardrobe-layout" });
+      var stage = h("div", { class: "wardrobe-stage" },
+        h("div", { style: "width:100%;display:flex;justify-content:space-between;align-items:center;" },
+          h("div", null, h("b", null, "Wardrobe"), h("small", { style: "display:block;color:var(--muted);font-size:11.5px;" }, "Drag to turn · scroll to zoom")),
+          h("span", { style: "background:rgba(0,0,0,0.5);padding:4px 12px;border-radius:6px;font-weight:700;font-size:13px;" }, S.name)
+        )
       );
+      var canvas = h("canvas", { width: "260", height: "340", style: "cursor:grab;" });
+      stage.append(canvas);
+
+      var viewer = null;
+      if (window.skinview3d) {
+        viewer = new window.skinview3d.SkinViewer({
+          canvas: canvas, width: 260, height: 340,
+          skin: S.skinData || "https://minecraft.net"
+        });
+        viewer.controls.enableRotate = true;
+        viewer.controls.enableZoom = true;
+        viewer.playerObject.skin.modelType = S.model === "Slim" ? "slim" : "default";
+        viewer.animation = new window.skinview3d.IdleAnimation();
+      }
+
+      var poses = {
+        Idle: function () { return new window.skinview3d.IdleAnimation(); },
+        Walk: function () { return new window.skinview3d.WalkingAnimation(); },
+        Run: function () { return new window.skinview3d.RunningAnimation(); },
+        Wave: function () { return new window.skinview3d.WaveAnimation(); },
+        Crouch: function () { return new window.skinview3d.CrouchAnimation(); }
+      };
+
+      stage.append(h("div", { class: "pose-bar" }, Object.keys(poses).map(function (p) {
+        return h("button", {
+          class: "pose-btn" + (S.pose === p ? " active" : ""),
+          onclick: function () {
+            S.pose = p;
+            if (viewer && poses[p]) viewer.animation = poses[p]();
+            stage.querySelectorAll(".pose-btn").forEach(function (b) { b.classList.toggle("active", b.textContent === p); });
+          }
+        }, p);
+      })));
+
+      var fileIn = h("input", {
+        type: "file", accept: "image/png", style: "display:none;",
+        onchange: function (e) {
+          var f = e.target.files.slice ? null : e.target.files.item(0);
+          if (!f) return;
+          var r = new FileReader();
+          r.onload = function () { S.skinData = r.result; save(); if (viewer) viewer.loadSkin(S.skinData); };
+          r.readAsDataURL(f);
+        }
+      });
+
+      var sidebar = h("div", { class: "card", style: "display:flex;flex-direction:column;gap:16px;" },
+        h("b", { style: "border-bottom:1px solid var(--border);padding-bottom:10px;" }, "Skin"),
+        fileIn,
+        h("div", {
+          style: "border:1px dashed var(--border-hi);border-radius:10px;padding:22px 14px;text-align:center;cursor:pointer;",
+          onclick: function () { fileIn.click(); }
+        },
+          h("div", { style: "font-size:18px;margin-bottom:4px;" }, "↑"),
+          h("b", { style: "font-size:13px;display:block;" }, "Upload a skin"),
+          h("small", { style: "color:var(--muted);font-size:11.5px;" }, "Click to browse 64×64 PNG skins")
+        ),
+        h("div", null,
+          h("small", { style: "font-family:var(--font-mono);color:var(--muted);display:block;margin-bottom:6px;" }, "MODEL"),
+          h("div", { style: "display:grid;grid-template-columns:1fr 1fr;gap:8px;" }, ["Classic", "Slim"].map(function (m) {
+            return h("button", {
+              class: "btn" + (S.model === m ? " primary" : ""),
+              style: "justify-content:center;",
+              onclick: function () { S.model = m; save(); render(); }
+            }, m);
+          }))
+        )
+      );
+
+      wrap.append(stage, sidebar);
+      return wrap;
     },
     servers: function () {
       return h("div", null, S.servers.map(function (s) {
