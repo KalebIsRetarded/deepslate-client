@@ -14,23 +14,23 @@
 <body>
   <header class="topbar">
     <div class="topbar-left">
-      <a class="brand" href="#/home">
+      <a class="brand" href="#" data-route="home">
         <img class="brand-mark" src="favicon.svg" alt="Deepslate">
         <span class="brand-title">Deepslate</span>
       </a>
       <nav class="topnav" id="topnav">
-        <a href="#/home" data-route="home">Home</a>
-        <a href="#/mods" data-route="mods">Mods</a>
-        <a href="#/wardrobe" data-route="wardrobe">Wardrobe</a>
-        <a href="#/settings" data-route="settings">Settings</a>
-        <a href="#/servers" data-route="servers">Servers ▾</a>
+        <a href="#" data-route="home">Home</a>
+        <a href="#" data-route="mods">Mods</a>
+        <a href="#" data-route="wardrobe">Wardrobe</a>
+        <a href="#" data-route="settings">Settings</a>
+        <a href="#" data-route="servers">Servers ▾</a>
       </nav>
     </div>
 
     <div class="topbar-right">
-      <button class="icon-pill" id="commandHint" title="Search (Ctrl+K)">🔍</button>
+      <button class="icon-pill" id="commandHint" title="Mods">🔍</button>
       <div class="streak-pill" id="streakPill">🔥 1</div>
-      <a class="profile-pill" href="#/settings" id="profilePill">
+      <a class="profile-pill" href="#" data-route="settings" id="profilePill">
         <img id="navAvatar" src="favicon.svg" alt="">
         <span id="navUsername">Player</span>
       </a>
@@ -42,6 +42,7 @@
   <div id="toasts" aria-live="polite"></div>
   <div id="overlay"></div>
 
+  <script src="https://unpkg.com"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
