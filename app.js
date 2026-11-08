@@ -93,7 +93,7 @@
       return;
     }
     var mOn = Object.keys(S.mods).filter(function (k) { return S.mods[k]; }).join(",");
-    var fullUrl = url + "?deepslateVersion=" + encodeURIComponent(S.version) + "&username=" + encodeURIComponent(prof().name) + "&deepslateMods=" + encodeURIComponent(mOn);
+    var fullUrl = url + "?deepslateVersion=" + encodeURIComponent(S.version) + "&username=" + encodeURIComponent(prof().name) + "&deepslateMods=" + encodeURIComponent(mOn) + (ip ? "&server=" + encodeURIComponent(ip) : "");
     var g = h("div", { class: "game" },
       h("div", { class: "bar" }, h("button", { class: "btn", onclick: function () { g.remove(); } }, "Exit"), h("b", null, "Deepslate " + S.version + " · " + prof().name)),
       h("iframe", { src: fullUrl, allow: "fullscreen; autoplay; gamepad; pointer-lock", allowfullscreen: "true" })
@@ -120,78 +120,236 @@
         ),
         h("div", { class: "home-bottom" },
           h("div", null,
-            h("h3", { style: "font-size:15px;" }, "Recent news"),
+            h("h3", { style: "font-size:15px;margin-bottom:10px;" }, "Recent news"),
             h("div", { class: "news-grid" },
               h("div", { class: "card" }, h("small", { style: "color:var(--muted);" }, "Nov 8"), h("b", { style: "display:block;margin:6px 0;" }, "Deepslate Launcher"), h("p", { style: "font-size:12.5px;color:var(--muted);" }, "Single-page launcher with mod toggles, 3D wardrobe, and profiles.")),
               h("div", { class: "card" }, h("small", { style: "color:var(--muted);" }, "Nov 5"), h("b", { style: "display:block;margin:6px 0;" }, "Chromebook Ready"), h("p", { style: "font-size:12.5px;color:var(--muted);" }, "Enable Performance mode in Settings for smoother frame rates.")),
               h("div", { class: "card" }, h("small", { style: "color:var(--muted);" }, "Nov 1"), h("b", { style: "display:block;margin:6px 0;" }, "Custom Skins"), h("p", { style: "font-size:12.5px;color:var(--muted);" }, "Upload any 64x64 PNG skin in the Wardrobe tab."))
             )
           ),
-          h("div", { class: "card" },
-            h("div", { style: "display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;" },
-              h("div", null, h("b", null, "Live players"), h("small", { style: "display:block;color:var(--muted);" }, "In Deepslate right now")),
-              h("span", { style: "font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--green);" }, "27")
+          h("div", { style: "display:flex;flex-direction:column;gap:12px;" },
+            h("div", { class: "card" },
+              h("div", { style: "display:flex;justify-content:space-between;align-items:center;" },
+                h("b", null, "Live players"),
+                h("span", { style: "color:var(--green,#3ddc97);font-weight:800;" }, "27")
+              ),
+              h("small", { style: "color:var(--muted);" }, "In Deepslate right now")
             ),
-            h("svg", { viewBox: "0 0 240 64", style: "width:100%;height:64px;overflow:visible;" },
-              h("polyline", { fill: "none", stroke: "#3ddc97", "stroke-width": "2.5", points: "0,54 30,52 60,48 90,50 120,34 145,44 170,18 195,38 220,24 240,14" })
+            h("div", { class: "card" },
+              h("b", { style: "display:block;margin-bottom:6px;" }, "Friends"),
+              prof().friends.map(function (f) {
+                return h("div", { style: "font-size:12.5px;display:flex;align-items:center;justify-content:space-between;padding:4px 0;" },
+                  h("span", null, f.name, badge(f.name)),
+                  h("small", { style: "color:var(--muted);" }, f.note || "Online")
+                );
+              })
             )
           )
+        ),
+        h("div", { class: "card", style: "margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;" },
+          h("div", null,
+            h("b", { style: "font-size:15px;" }, DEFAULT_MODS.length + " built-in mods, one click each"),
+            h("small", { style: "display:block;color:var(--muted);" }, "Performance, shaders, PvP hitboxes, and HUD tweaks.")
+          ),
+          h("button", { class: "btn primary", onclick: function () { go("mods"); } }, "Open Mods")
         )
       );
     },
+
     mods: function () {
-      var all = (Array.isArray(C.MODS) && C.MODS.length) ? C.MODS : DEFAULT_MODS;
-      var cats = ["All", "Performance", "Visuals", "HUD", "PvP", "Utility"];
-      var list = all.filter(function (m) { return (S.filter === "All" || m.category === S.filter) && (!S.search || m.name.toLowerCase().indexOf(S.search.toLowerCase()) !== -1); });
-      var srch = h("input", { value: S.search || "", placeholder: "Search mods", oninput: function () { S.search = srch.value; render(); } });
-      return h("div", null,
-        h("div", { class: "mods-header" }, h("h2", { style: "font-size:18px;" }, "Browse mods")),
-        h("div", { class: "filter-row" }, srch, cats.map(function (c) { return h("button", { class: "chip-btn" + (S.filter === c ? " active" : ""), onclick: function () { S.filter = c; render(); } }, c); })),
-        h("div", { class: "mods-grid" }, list.map(function (m) {
-          var on = !!S.mods[m.id];
+      var cats = ["All", "Performance", "Visuals", "Utility", "PvP", "HUD"];
+      var list = DEFAULT_MODS.filter(function (m) {
 Use code with caution.
-var code = m.code || m.name.slice(0, 2).toUpperCase();
-var icon = h("div", { class: "mod-icon" }, code);
-if (m.image) {
-var img = h("img", { src: m.image, style: "width:100%;height:100%;object-fit:cover;image-rendering:pixelated;", onerror: function () { icon.innerHTML = ""; icon.textContent = code; } });
-icon.innerHTML = ""; icon.append(img);
-}
-return h("div", { class: "mod-card" },
-h("div", { class: "mod-top" },
-h("div", { style: "display:flex;gap:10px;align-items:center;" }, icon, h("div", null, h("b", null, m.name), h("small", { style: "display:block;color:var(--muted);" }, m.category))),
-h("button", { class: "btn " + (on ? "added" : ""), onclick: function () { S.mods[m.id] = !on; save(); toast((!on ? "Added " : "Removed ") + m.name); render(); } }, on ? "Added" : "+ Add")
+var matchCat = S.filter === "All" || m.category === S.filter;
+var matchSearch = !S.search || m.name.toLowerCase().indexOf(S.search.toLowerCase()) !== -1;
+return matchCat && matchSearch;
+});
+return h("div", null,
+h("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;" },
+h("h2", { style: "font-size:20px;" }, "Mods"),
+h("input", {
+type: "text",
+placeholder: "Search mods...",
+value: S.search,
+oninput: function (e) { S.search = e.target.value; render(); }
+})
 ),
-h("p", { style: "font-size:12.5px;color:var(--muted);margin-top:8px;" }, m.desc)
+h("div", { style: "display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" },
+cats.map(function (c) {
+return h("button", {
+class: "btn" + (S.filter === c ? " primary" : ""),
+onclick: function () { S.filter = c; render(); }
+}, c);
+})
+),
+h("div", { class: "news-grid" },
+list.map(function (m) {
+var active = !!S.mods[m.id];
+return h("div", { class: "card", style: "display:flex;flex-direction:column;justify-content:space-between;gap:12px;" },
+h("div", null,
+h("div", { style: "display:flex;justify-content:space-between;align-items:center;" },
+h("b", null, m.name),
+h("small", { style: "color:var(--muted);" }, m.category)
+),
+h("p", { style: "font-size:12.5px;color:var(--muted);margin-top:6px;" }, m.desc)
+),
+h("button", {
+class: "btn" + (active ? " primary" : ""),
+onclick: function () {
+S.mods[m.id] = !active;
+save();
+toast(m.name + (S.mods[m.id] ? " enabled" : " disabled"));
+render();
+}
+}, active ? "Enabled" : "Disabled")
 );
-}))
+})
+)
 );
 },
 wardrobe: function () {
 var p = prof();
-if (viewer && viewer.dispose) { try { viewer.dispose(); } catch (e) {} viewer = null; }
-var canvas = h("canvas", { width: "280", height: "360", style: "cursor:grab;" });
+var canvas = h("canvas", { width: "260", height: "340", style: "background:rgba(255,255,255,0.02);border-radius:12px;" });
+setTimeout(function () {
 if (window.skinview3d) {
-viewer = new window.skinview3d.SkinViewer({ canvas: canvas, width: 280, height: 360 });
-if (p.skin) viewer.loadSkin(p.skin);
-viewer.controls.enableRotate = true; viewer.controls.enableZoom = true;
-viewer.playerObject.skin.modelType = p.model === "Slim" ? "slim" : "default";
-viewer.animation = new window.skinview3d.IdleAnimation();
+viewer = new window.skinview3d.SkinViewer({
+canvas: canvas,
+width: 260,
+height: 340,
+skin: p.skin || "minecraft.net"
+});
 }
-var fileIn = h("input", { type: "file", accept: "image/png", style: "display:none;", onchange: function (e) {
-var f = e.target.files.item(0); if (!f) return;
-var r = new FileReader(); r.onload = function () { p.skin = r.result; save(); toast("Skin updated"); render(); }; r.readAsDataURL(f);
-}});
-return h("div", { class: "wardrobe-layout" },
-h("div", { class: "wardrobe-stage" }, h("div", null, h("b", null, p.name), badge(p.name)), canvas,
-h("div", { class: "pose-bar" }, ["Idle", "Walk", "Run", "Wave", "Crouch"].map(function (x) { return h("button", { class: "pose-btn" + (S.pose === x ? " active" : ""), onclick: function () { S.pose = x; render(); } }, x); }))
+}, 20);
+var fileInp = h("input", {
+type: "file",
+accept: "image/png",
+style: "display:none;",
+onchange: function (e) {
+var f = e.target.files[0];
+if (!f) return;
+var r = new FileReader();
+r.onload = function () {
+p.skin = r.result;
+save();
+toast("Skin updated!");
+render();
+};
+r.readAsDataURL(f);
+}
+});
+return h("div", { style: "display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;" },
+h("div", { class: "card", style: "text-align:center;" }, canvas),
+h("div", { class: "card", style: "flex:1;min-width:260px;" },
+h("h2", { style: "font-size:18px;margin-bottom:8px;" }, "Wardrobe · ", p.name, badge(p.name)),
+h("p", { style: "font-size:13px;color:var(--muted);margin-bottom:16px;" }, "Upload a 64x64 Minecraft PNG skin to preview and use in-game."),
+fileInp,
+h("div", { style: "display:flex;gap:10px;flex-wrap:wrap;" },
+h("button", { class: "btn primary", onclick: function () { fileInp.click(); } }, "Upload Skin PNG"),
+p.skin ? h("button", { class: "btn", onclick: function () { p.skin = ""; save(); toast("Reset to default skin"); render(); } }, "Reset Skin") : null
+)
+)
+);
+},
+settings: function () {
+var p = prof();
+return h("div", { style: "display:flex;flex-direction:column;gap:16px;max-width:600px;" },
+h("div", { class: "card" },
+h("h3", { style: "margin-bottom:10px;" }, "Profile"),
+h("div", { style: "display:flex;justify-content:space-between;align-items:center;" },
+h("div", null, h("b", null, p.name), badge(p.name)),
+h("button", {
+class: "btn",
+onclick: function () {
+ask("Change Username", p.name, "Username", function (val) {
+if (val.trim()) { p.name = val.trim(); save(); render(); }
+});
+}
+}, "Edit Name")
+)
 ),
-h("div", { class: "card", style: "display:flex;flex-direction:column;gap:14px;" }, h("b", null, "Skin"), fileIn,
-h("button", { class: "btn", onclick: function () { fileIn.click(); } }, "Upload 64x64 PNG"),
-h("div", { style: "display:grid;grid-template-columns:1fr 1fr;gap:8px;" }, ["Classic", "Slim"].map(function (m) {
-: ""), onclick: function () { p.model = m; save(); render(); } }, m);
-}))
+h("div", { class: "card" },
+h("h3", { style: "margin-bottom:10px;" }, "Client Settings"),
+h("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;" },
+h("span", null, "Performance Mode"),
+h("button", {
+class: "btn" + (S.perfMode ? " primary" : ""),
+onclick: function () { S.perfMode = !S.perfMode; save(); render(); }
+}, S.perfMode ? "On" : "Off")
+),
+h("div", { style: "display:flex;justify-content:space-between;align-items:center;" },
+h("span", null, "Accent Color"),
+h("div", { style: "display:flex;gap:8px;" },
+Object.keys(ACCENTS).map(function (k) {
+return h("button", {
+style: "width:22px;height:22px;border-radius:50%;border:2px solid " + (S.accent === k ? "#fff" : "transparent") + ";background:" + ACCENTS[k] + ";cursor:pointer;",
+onclick: function () { S.accent = k; save(); render(); }
+});
+})
+)
+)
 )
 );
 },
 servers: function () {
-return h("div", null, S.servers.map(function (s) {
+return h("div", null,
+h("div", { style: "display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;" },
+h("h2", { style: "font-size:20px;" }, "Servers"),
+h("button", {
+class: "btn primary",
+onclick: function () {
+ask("Add Server IP", "", "wss://example.com", function (ip) {
+if (ip.trim()) {
+S.servers.push({ name: ip.trim(), ip: ip.trim() });
+save();
+render();
+}
+});
+}
+}, "+ Add Server")
+),
+h("div", { style: "display:flex;flex-direction:column;gap:10px;" },
+S.servers.map(function (srv, idx) {
+return h("div", { class: "card", style: "display:flex;justify-content:space-between;align-items:center;" },
+h("div", null,
+h("b", { style: "display:block;" }, srv.name),
+h("small", { style: "color:var(--muted);" }, srv.ip)
+),
+h("div", { style: "display:flex;gap:8px;" },
+h("button", { class: "btn primary", onclick: function () { launch(srv.ip); } }, "Join"),
+h("button", { class: "btn", onclick: function () { S.servers.splice(idx, 1); save(); render(); } }, "Remove")
+)
+);
+})
+)
+);
+}
+};
+function render() {
+var accentHex = ACCENTS[S.accent] || ACCENTS.periwinkle;
+document.documentElement.style.setProperty("--accent", accentHex);
+var uEl = document.getElementById("navUsername");
+if (uEl) uEl.textContent = prof().name;
+var navBtns = document.querySelectorAll("[data-route]");
+navBtns.forEach(function (btn) {
+if (btn.getAttribute("data-route") === route) btn.classList.add("active");
+else btn.classList.remove("active");
+});
+var view = document.getElementById("view");
+if (!view) return;
+view.innerHTML = "";
+var pageFn = pages[route] || pages.home;
+view.append(pageFn());
+}
+document.addEventListener("click", function (e) {
+var btn = e.target.closest("[data-route]");
+if (btn) {
+e.preventDefault();
+go(btn.getAttribute("data-route"));
+}
+});
+if (document.readyState === "loading") {
+document.addEventListener("DOMContentLoaded", render);
+} else {
+render();
+}
+})();
