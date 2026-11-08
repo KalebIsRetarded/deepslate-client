@@ -1,167 +1,77 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b0b0e">
-
+  <meta name="theme-color" content="#09090d">
   <meta name="application-name" content="Deepslate Client">
   <meta name="description" content="Deepslate Client — Your Minecraft experience, refined.">
   <meta name="color-scheme" content="dark">
-
   <title>Deepslate Client</title>
 
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-
-  <!-- Performance -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <!-- Typography -->
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Oxanium:wght@600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Main Stylesheet -->
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Oxanium:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
-
 </head>
-
 <body>
-
-  <!-- Application Shell -->
   <div id="app" class="app-shell">
-
-    <!-- Navigation -->
+    <!-- Top Navigation Bar -->
     <header class="topbar">
-
       <div class="topbar-left">
-
-        <button
-          type="button"
-          class="brand"
-          data-route="home"
-          aria-label="Deepslate Home"
-        >
-          <img
-            class="brand-mark"
-            src="favicon.svg"
-            alt=""
-          >
-
+        <button type="button" class="brand" data-route="home" aria-label="Deepslate Home">
+          <span class="brand-badge">
+            <img class="brand-mark" src="favicon.svg" alt="" onerror="this.style.display='none'">
+          </span>
           <span>Deepslate</span>
         </button>
 
-        <nav
-          class="topnav"
-          id="topnav"
-          aria-label="Main navigation"
-        >
-
-          <button type="button" data-route="home">
-            Home
-          </button>
-
-          <button type="button" data-route="mods">
-            Mods
-          </button>
-
-          <button type="button" data-route="wardrobe">
-            Wardrobe
-          </button>
-
-          <button type="button" data-route="settings">
-            Settings
-          </button>
-
-          <button type="button" data-route="servers">
-            Servers
-          </button>
-
+        <nav class="topnav" id="topnav" aria-label="Main navigation">
+          <button type="button" data-route="home" class="active">Home</button>
+          <button type="button" data-route="mods">Mods</button>
+          <button type="button" data-route="servers">Servers</button>
+          <button type="button" data-route="wardrobe">Wardrobe</button>
+          <button type="button" data-route="settings">Settings</button>
         </nav>
-
       </div>
 
-      <!-- Navigation Utilities -->
       <div class="topbar-right">
-
-        <button
-          type="button"
-          class="icon-pill"
-          id="commandHint"
-          aria-label="Open search"
-        >
-          <span>Search</span>
-          <kbd>⌘ K</kbd>
+        <button type="button" class="icon-btn" id="commandHint" aria-label="Search (Ctrl+K)" title="Search (Ctrl+K)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         </button>
 
-        <div
-          class="streak-pill"
-          title="Activity streak"
-          aria-label="One day activity streak"
-        >
-          1d
+        <div class="streak-pill" title="Activity streak">
+          <span class="streak-dot"></span>
+          <span>1d</span>
         </div>
 
-        <button
-          type="button"
-          class="profile-pill"
-          data-route="settings"
-          aria-label="Open player settings"
-        >
-
-          <img
-            src="favicon.svg"
-            alt=""
-          >
-
-          <span id="navUsername">
-            Player
-          </span>
-
+        <button type="button" class="profile-pill" data-route="settings" aria-label="Open player settings">
+          <div class="avatar-head" id="navAvatar">P</div>
+          <span id="navUsername">Player</span>
         </button>
-
       </div>
-
     </header>
 
-    <!-- Main Application Content -->
-    <main
-      id="view"
-      class="main-wrap"
-      tabindex="-1"
-    >
+    <!-- Main View Container -->
+    <main id="view" class="main-wrap" tabindex="-1">
       <div class="app-loading">
         <div class="loading-mark">
           <img src="favicon.svg" alt="">
         </div>
-
         <p>Initializing Deepslate</p>
-
         <span>Preparing your experience...</span>
       </div>
     </main>
 
-    <!-- Notification System -->
-    <div
-      id="toasts"
-      aria-live="polite"
-      aria-atomic="false"
-    ></div>
+    <!-- Toast Notifications -->
+    <div id="toasts" aria-live="polite" aria-atomic="false"></div>
 
-    <!-- Modal / Overlay System -->
-    <div
-      id="overlay"
-      aria-live="polite"
-    ></div>
-
+    <!-- Modal Overlay -->
+    <div id="overlay" aria-live="polite"></div>
   </div>
 
-  <!-- Application Configuration -->
   <script src="config.js"></script>
-
-  <!-- Application Logic -->
   <script src="app.js"></script>
-
 </body>
 </html>
-```
