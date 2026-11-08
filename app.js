@@ -1,11 +1,9 @@
-```javascript
-/* Deepslate Client — persistent launcher + game shell */
+/* Deepslate Client — Complete Chromium UI + Persistent Game Shell */
 (function () {
   "use strict";
 
   var C = window.DEEPSLATE_CONFIG || {};
   var STORAGE_KEY = "deepslate.v27";
-  var OWNER = "cruxisdumb";
   var ACCENTS = {
     periwinkle: "#a594f9",
     green: "#3ddc97",
@@ -19,32 +17,48 @@
   var gameHost = null;
 
   var DEFAULT_MODS = Array.isArray(C.MODS) && C.MODS.length ? C.MODS : [
-    { id: "fps-boost", name: "Sodium", category: "Performance", code: "SO", desc: "Performance improvements." },
-    { id: "iris", name: "Iris Shaders", category: "Visuals", code: "IR", desc: "Shader support." },
-    { id: "zoom", name: "ZoomX Smooth", category: "Utility", code: "ZM", desc: "Smooth zoom with scroll adjustment." },
-    { id: "hitboxes", name: "Combat Hitboxes", category: "PvP", code: "HB", desc: "Custom entity hitbox rendering." },
-    { id: "armor-hud", name: "Uku's Armor HUD", category: "HUD", code: "AR", desc: "Shows armor durability." },
-    { id: "fullbright", name: "Fullbright & Clear", category: "Visuals", code: "FB", desc: "Fullbright and visual improvements." }
+    { id: "fps-boost", name: "Sodium", category: "Performance", code: "SO", author: "Deepslate", desc: "Sodium-style video settings built for the browser." },
+    { id: "iris", name: "Iris Shaders", category: "Visuals", code: "IR", author: "IrisShaders", desc: "Load shader packs like Complementary." },
+    { id: "zoom", name: "ZoomX Smooth", category: "Utility", code: "ZM", author: "spunky", desc: "Smooth zoom. Press C or Z to zoom." },
+    { id: "hitboxes", name: "Combat Hitboxes", category: "PvP", code: "HB", author: "sootysplash", desc: "Hitbox rendering for timing hits and reach." },
+    { id: "armor-hud", name: "Uku's Armor HUD", category: "HUD", code: "AR", author: "uku", desc: "Shows your armor next to the hotbar, with durability." },
+    { id: "fullbright", name: "Fullbright & Clear", category: "Visuals", code: "FB", author: "Deepslate", desc: "Fullbright, low fire and shield, and clear water." }
   ];
 
-  function element(tag, attrs) {
+  var NEWS_ITEMS = [
+    {
+      date: "Nov 08",
+      title: "New Chromium launcher",
+      body: "A brand new launcher design with quick search (Ctrl+K), instance selector, mod browser, and wardrobe.",
+      author: "cruxisdumb"
+    },
+    {
+      date: "Nov 05",
+      title: "Web Engine 1.21.11",
+      body: "Play the latest version or switch to 1.8.8 PvP (WASM) right from the version dropdown next to Play.",
+      author: "cruxisdumb"
+    },
+    {
+      date: "Nov 01",
+      title: "One-click mods",
+      body: "Enable Sodium, Iris Shaders, ZoomX Smooth, and Combat Hitboxes before launching your session.",
+      author: "cruxisdumb"
+    }
+  ];
+
+  function el(tag, attrs) {
     var node = document.createElement(tag);
     var children = Array.prototype.slice.call(arguments, 2);
 
     Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-
-      if (key === "class") node.className = value;
-      else if (key === "style" && typeof value === "object") {
-        Object.keys(value).forEach(function (styleKey) {
-          node.style[styleKey] = value[styleKey];
-        });
-      } else if (key.slice(0, 2) === "on" && typeof value === "function") {
-        node.addEventListener(key.slice(2), value);
-      } else if (key === "checked" || key === "disabled" || key === "selected") {
-        node[key] = !!value;
-      } else if (value !== null && value !== undefined) {
-        node.setAttribute(key, String(value));
+      var val = attrs[key];
+      if (key === "class") node.className = val;
+      else if (key === "style" && typeof val === "object") {
+        Object.keys(val).forEach(function (sk) { node.style[sk] = val[sk]; });
+      } else if (key.slice(0, 2) === "on" && typeof val === "function") {
+        node.addEventListener(key.slice(2), val);
+      } else if (val !== null && val !== undefined && val !== false) {
+        node.setAttribute(key, String(val));
       }
     });
 
@@ -62,20 +76,16 @@
     return {
       id: Math.random().toString(36).slice(2, 9),
       name: name || "Player",
-      status: "",
-      bio: "",
       model: "Classic",
-      skin: "",
       friends: [{ name: "CruxIsDumb", note: "Client Owner" }]
     };
   }
 
   function loadState() {
     try {
-      var raw = localStorage.getItem(STORAGE_KEY) ||
-                localStorage.getItem("deepslate.v26");
+      var raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : null;
-    } catch (error) {
+    } catch (e) {
       return null;
     }
   }
@@ -87,29 +97,25 @@
     accent: "periwinkle",
     extraDark: false,
     version: C.DEFAULT_VERSION || "1.21.11",
-    inst: "My instance 1",
+    inst: "MY INSTANCE 1",
     mods: { "fps-boost": true, zoom: true },
     filter: "All",
     search: "",
     servers: Array.isArray(C.FEATURED_SERVERS)
-      ? C.FEATURED_SERVERS.map(function (server) {
-          return { name: server.name, ip: server.ip };
+      ? C.FEATURED_SERVERS.map(function (srv) {
+          return { name: srv.name, ip: srv.ip, version: srv.version || "1.8 - 1.21" };
         })
       : [],
     pose: "Idle",
-    stTab: "My account",
-    perfMode: false
+    stTab: "My account"
   };
 
   if (!Array.isArray(S.profiles) || !S.profiles.length) {
     S.profiles = [firstProfile];
     S.activeId = firstProfile.id;
   }
-
   if (!S.mods || typeof S.mods !== "object") S.mods = {};
   if (!Array.isArray(S.servers)) S.servers = [];
-  if (!S.version) S.version = C.DEFAULT_VERSION || "1.21.11";
-  if (!ACCENTS[S.accent]) S.accent = "periwinkle";
 
   function profile() {
     for (var i = 0; i < S.profiles.length; i++) {
@@ -122,18 +128,26 @@
   function save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
-    } catch (error) {
-      toast("Could not save settings in this browser.");
-    }
+    } catch (e) {}
   }
 
-  function toast(message) {
+  function applyTheme() {
+    var color = ACCENTS[S.accent] || ACCENTS.periwinkle;
+    document.documentElement.style.setProperty("--accent", color);
+    document.body.classList.toggle("extra-dark", !!S.extraDark);
+
+    var p = profile();
+    var navUser = document.getElementById("navUsername");
+    var navAv = document.getElementById("navAvatar");
+    if (navUser) navUser.textContent = p.name;
+    if (navAv) navAv.textContent = (p.name || "P").charAt(0).toUpperCase();
+  }
+
+  function toast(msg) {
     var host = document.getElementById("toasts");
     if (!host) return;
-
-    var item = element("div", { class: "toast", role: "status" }, message);
+    var item = el("div", { class: "toast", role: "status" }, msg);
     host.appendChild(item);
-
     window.setTimeout(function () {
       if (item.parentNode) item.parentNode.removeChild(item);
     }, 2800);
@@ -142,148 +156,93 @@
   function modal(title, content, buttons) {
     var overlay = document.getElementById("overlay");
     if (!overlay) return;
-
     var backdrop;
-
     function close() {
-      if (backdrop && backdrop.parentNode) {
-        backdrop.parentNode.removeChild(backdrop);
-      }
+      if (backdrop && backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
     }
-
-    backdrop = element("div", {
+    backdrop = el("div", {
       class: "ds-modal-backdrop",
-      onclick: function (event) {
-        if (event.target === backdrop) close();
-      }
+      onclick: function (e) { if (e.target === backdrop) close(); }
     },
-      element("section", {
-        class: "ds-modal",
-        role: "dialog",
-        "aria-modal": "true"
-      },
-        element("h2", {}, title),
+      el("section", { class: "ds-modal", role: "dialog" },
+        el("h2", {}, title),
         content,
-        element("div", { class: "ds-modal-actions" }, buttons(close))
+        el("div", { class: "ds-modal-actions" }, buttons(close))
       )
     );
-
     overlay.appendChild(backdrop);
   }
 
-  function ask(title, current, placeholder, callback) {
-    var input = element("input", {
+  function ask(title, current, placeholder, cb) {
+    var input = el("input", {
       class: "ds-modal-input",
       type: "text",
       value: current || "",
       placeholder: placeholder || ""
     });
-
     modal(title, input, function (close) {
       return [
-        element("button", {
-          class: "btn",
-          type: "button",
-          onclick: close
-        }, "Cancel"),
-
-        element("button", {
+        el("button", { class: "btn", type: "button", onclick: close }, "Cancel"),
+        el("button", {
           class: "btn primary",
           type: "button",
-          onclick: function () {
-            callback(input.value);
-            close();
-          }
+          onclick: function () { cb(input.value); close(); }
         }, "Save")
       ];
     });
+    window.setTimeout(function () { input.focus(); input.select(); }, 30);
+  }
 
-    window.setTimeout(function () {
-      input.focus();
-      input.select();
-    }, 30);
+  function enabledModCount() {
+    return Object.keys(S.mods).filter(function (k) { return !!S.mods[k]; }).length;
   }
 
   function getGameUrl(serverIp) {
-    var base = String(C.GAME_URL || "").trim();
-    if (!base) return "";
-
+    var base = String(C.GAME_URL || "/game/index.html").trim();
     var params = new URLSearchParams();
     params.set("deepslateVersion", S.version);
     params.set("username", profile().name);
-
-    params.set(
-      "deepslateMods",
-      Object.keys(S.mods).filter(function (id) {
-        return !!S.mods[id];
-      }).join(",")
-    );
-
+    params.set("deepslateMods", Object.keys(S.mods).filter(function (id) { return !!S.mods[id]; }).join(","));
     if (serverIp) params.set("server", serverIp);
-
-    return base +
-      (base.indexOf("?") === -1 ? "?" : "&") +
-      params.toString();
+    return base + (base.indexOf("?") === -1 ? "?" : "&") + params.toString();
   }
 
-  /*
-   * The game iframe is created ONCE.
-   * Navigation never destroys or recreates it.
-   */
   function buildGameShell() {
     if (gameHost) return;
+    gameHost = el("section", { id: "deepslateGameHost", class: "ds-game-host is-hidden" });
 
-    gameHost = element("section", {
-      id: "deepslateGameHost",
-      class: "ds-game-host is-hidden"
-    });
-
-    var gameBar = element("div", { class: "ds-game-bar" },
-      element("div", { class: "ds-game-title" },
-        element("span", { class: "ds-live-dot" }),
-        element("strong", {}, "Deepslate Game"),
-        element("small", { id: "dsGameVersion" }, S.version)
+    var gameBar = el("div", { class: "ds-game-bar" },
+      el("div", { class: "ds-game-title" },
+        el("span", { class: "ds-live-dot" }),
+        el("strong", {}, "Deepslate Game"),
+        el("small", { id: "dsGameVersion", style: { color: "var(--muted)" } }, S.version)
       ),
-
-      element("div", { class: "ds-game-actions" },
-        element("button", {
+      el("div", { class: "ds-game-actions" },
+        el("button", { class: "btn", type: "button", onclick: function () { go("home"); } }, "Back to launcher"),
+        el("button", {
           class: "btn",
           type: "button",
           onclick: function () {
-            go("home");
-          }
-        }, "Back to launcher"),
-
-        element("button", {
-          class: "btn",
-          type: "button",
-          onclick: function () {
-            if (gameFrame && gameFrame.contentWindow) {
-              gameFrame.contentWindow.location.reload();
-            }
+            if (gameFrame && gameFrame.contentWindow) gameFrame.contentWindow.location.reload();
           }
         }, "Reload game"),
-
-        element("button", {
+        el("button", {
           class: "btn primary",
           type: "button",
           onclick: function () {
             if (gameFrame && gameFrame.requestFullscreen) {
-              gameFrame.requestFullscreen().catch(function () {
-                toast("Fullscreen is unavailable.");
-              });
+              gameFrame.requestFullscreen().catch(function () { toast("Fullscreen is unavailable."); });
             }
           }
         }, "Fullscreen")
       )
     );
 
-    gameFrame = element("iframe", {
+    gameFrame = el("iframe", {
       id: "deepslateGameFrame",
       title: "Deepslate Minecraft game",
       allow: "fullscreen; autoplay; gamepad; pointer-lock",
-      allowfullscreen: "true",
-      referrerpolicy: "strict-origin-when-cross-origin"
+      allowfullscreen: "true"
     });
 
     gameHost.appendChild(gameBar);
@@ -291,678 +250,630 @@
     document.body.appendChild(gameHost);
   }
 
-  function showGame(visible) {
+  function launchGame(serverIp) {
     buildGameShell();
-
-    gameHost.classList.toggle("is-hidden", !visible);
-    gameHost.setAttribute("aria-hidden", visible ? "false" : "true");
-
-    var view = document.getElementById("view");
-    if (view) view.style.display = visible ? "none" : "";
-
-    if (visible) {
-      var label = document.getElementById("dsGameVersion");
-      if (label) label.textContent = S.version;
-    }
+    var verLabel = document.getElementById("dsGameVersion");
+    if (verLabel) verLabel.textContent = S.version;
+    gameFrame.src = getGameUrl(serverIp);
+    gameStarted = true;
+    gameHost.classList.remove("is-hidden");
+    toast("Launching Deepslate " + S.version + (serverIp ? " (" + serverIp + ")" : "") + "...");
   }
 
-  function launch(serverIp) {
-    var url = getGameUrl(serverIp);
+  function openVersionPicker() {
+    var versions = Array.isArray(C.VERSIONS) && C.VERSIONS.length ? C.VERSIONS : [
+      { id: "1.21.11", label: "1.21.11 (Latest)" },
+      { id: "1.8.8", label: "1.8.8 PvP (WASM)" }
+    ];
 
-    if (!url) {
-      modal(
-        "Game engine not configured",
-        element("p", { class: "ds-muted" },
-          "Set GAME_URL in config.js to your actual Eaglercraft client, for example /game/index.html."
-        ),
-        function (close) {
-          return [
-            element("button", {
-              class: "btn primary",
-              type: "button",
-              onclick: close
-            }, "Got it")
-          ];
-        }
-      );
-      return;
-    }
-
-    buildGameShell();
-
-    if (!gameStarted || serverIp) {
-      gameFrame.src = url;
-      gameStarted = true;
-    }
-
-    showGame(true);
-    route = "game";
-    updateNavigation();
-  }
-
-  function updateNavigation() {
-    var buttons = document.querySelectorAll("[data-route]");
-
-    Array.prototype.forEach.call(buttons, function (button) {
-      var active = button.getAttribute("data-route") === route;
-      button.classList.toggle("active", active);
-
-      if (active) button.setAttribute("aria-current", "page");
-      else button.removeAttribute("aria-current");
-    });
-
-    var username = document.getElementById("navUsername");
-    if (username) username.textContent = profile().name;
-  }
-
-  function go(nextRoute) {
-    if (!pages[nextRoute] && nextRoute !== "game") nextRoute = "home";
-
-    route = nextRoute;
-
-    if (route === "game") {
-      if (!gameStarted) {
-        showGame(false);
-        route = "home";
-        toast("Press Play to start the game.");
-      } else {
-        showGame(true);
-      }
-    } else {
-      showGame(false);
-      render();
-    }
-
-    updateNavigation();
-  }
-
-  function heading(title, subtitle, action) {
-    return element("div", { class: "ds-section-heading" },
-      element("div", {},
-        element("p", { class: "ds-eyebrow" }, "DEEPSLATE CLIENT"),
-        element("h1", {}, title),
-        subtitle ? element("p", { class: "ds-muted" }, subtitle) : null
-      ),
-      action || null
-    );
-  }
-
-  function card(title, description, content) {
-    return element("section", { class: "card ds-panel" },
-      title ? element("h3", {}, title) : null,
-      description ? element("p", {
-        class: "ds-muted ds-card-description"
-      }, description) : null,
-      content || null
-    );
-  }
-
-  function homePage() {
-    var enabledCount = Object.keys(S.mods).filter(function (id) {
-      return S.mods[id];
-    }).length;
-
-    var versions = Array.isArray(C.VERSIONS) && C.VERSIONS.length
-      ? C.VERSIONS
-      : [{ id: C.DEFAULT_VERSION || "1.21.11", label: C.DEFAULT_VERSION || "1.21.11" }];
-
-    var versionSelect = element("select", {
-      class: "ds-version-select",
-      "aria-label": "Minecraft version",
-      onchange: function (event) {
-        S.version = event.target.value;
-        save();
-        toast("Version set to " + S.version);
-      }
-    });
-
-    versions.forEach(function (version) {
-      versionSelect.appendChild(element("option", {
-        value: version.id,
-        selected: version.id === S.version
-      }, version.label || version.id));
-    });
-
-    return element("div", { class: "ds-page" },
-      element("section", { class: "ds-home-hero" },
-        element("div", { class: "ds-home-copy" },
-          element("p", { class: "ds-eyebrow" }, "YOUR GAME. YOUR WAY."),
-          element("h1", {},
-            "Welcome to ",
-            element("span", {}, "Deepslate.")
-          ),
-          element("p", { class: "ds-hero-description" },
-            "Your Minecraft client, launcher, mods and servers — all in one place."
-          ),
-
-          element("div", { class: "ds-launch-controls" },
-            element("button", {
-              class: "ds-play-button",
-              type: "button",
-              onclick: function () { launch(); }
-            },
-              element("span", { class: "ds-play-icon" }, "▶"),
-              element("span", {}, "PLAY NOW")
-            ),
-            versionSelect
-          ),
-
-          element("div", { class: "ds-hero-meta" },
-            element("span", {}, "● Client ready"),
-            element("span", {}, enabledCount + " mods enabled"),
-            element("span", {}, "Profile: " + profile().name)
-          )
-        ),
-
-        element("div", {
-          class: "ds-hero-art",
-          "aria-hidden": "true"
+    var list = el("div", { style: { display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" } },
+      versions.map(function (v) {
+        var active = S.version === v.id;
+        return el("button", {
+          class: active ? "btn primary" : "btn",
+          type: "button",
+          style: { justifyContent: "space-between", width: "100%" },
+          onclick: function () {
+            S.version = v.id;
+            save();
+            render();
+            var ov = document.getElementById("overlay");
+            if (ov) ov.innerHTML = "";
+            toast("Switched to " + v.label);
+          }
         },
-          element("div", { class: "ds-art-orbit ds-orbit-one" }),
-          element("div", { class: "ds-art-orbit ds-orbit-two" }),
-          element("div", { class: "ds-cube" },
-            element("span", { class: "cube-top" }),
-            element("span", { class: "cube-left" }),
-            element("span", { class: "cube-right" })
-          ),
-          element("span", { class: "ds-art-caption" }, "BUILD · EXPLORE · PLAY")
-        )
-      ),
-
-      element("div", { class: "ds-quick-grid" },
-        quickCard("⌘", "Mod Library", "Manage your client setup", "mods"),
-        quickCard("◎", "Servers", "Manage your server list", "servers"),
-        quickCard("◇", "Wardrobe", "Customize your player", "wardrobe")
-      ),
-
-      element("div", { class: "ds-home-lower" },
-        card("Your instance", "Your game files are hosted with this website.",
-          element("div", { class: "ds-instance-row" },
-            element("div", {},
-              element("strong", {}, S.inst || "My instance 1"),
-              element("small", {}, "Minecraft " + S.version)
-            ),
-            element("span", { class: "ds-status-tag" }, "READY")
-          )
-        ),
-
-        card("Quick settings", "Your current client configuration.",
-          element("div", { class: "ds-stat-list" },
-            stat("Performance mode", S.perfMode ? "On" : "Off"),
-            stat("Enabled mods", String(enabledCount)),
-            stat("Active profile", profile().name)
-          )
-        )
-      )
-    );
-  }
-
-  function quickCard(symbol, title, description, destination) {
-    return element("button", {
-      class: "ds-quick-card",
-      type: "button",
-      onclick: function () { go(destination); }
-    },
-      element("span", { class: "ds-quick-icon" }, symbol),
-      element("strong", {}, title),
-      element("small", {}, description),
-      element("b", {}, "OPEN →")
-    );
-  }
-
-  function stat(label, value) {
-    return element("div", {},
-      element("span", {}, label),
-      element("strong", {}, value)
-    );
-  }
-
-  function modsPage() {
-    var categories = ["All", "Performance", "Visuals", "Utility", "PvP", "HUD"];
-    var wrap = element("div", { class: "ds-page" });
-
-    wrap.appendChild(heading(
-      "Mod library",
-      "Choose the features you want in your client.",
-      element("span", { class: "ds-count-tag" }, DEFAULT_MODS.length + " available")
-    ));
-
-    var search = element("input", {
-      class: "ds-search-input",
-      type: "search",
-      placeholder: "Search mods...",
-      value: S.search || "",
-      oninput: function (event) {
-        S.search = event.target.value;
-        renderModsList(list);
-      }
-    });
-
-    var filters = element("div", { class: "ds-filter-row" });
-
-    categories.forEach(function (category) {
-      filters.appendChild(element("button", {
-        class: "chip-btn" + (S.filter === category ? " active" : ""),
-        type: "button",
-        onclick: function () {
-          S.filter = category;
-          render();
-        }
-      }, category));
-    });
-
-    wrap.appendChild(element("div", { class: "ds-toolbar" }, search, filters));
-
-    var list = element("div", { class: "ds-mod-grid" });
-    wrap.appendChild(list);
-    renderModsList(list);
-
-    return wrap;
-  }
-
-  function renderModsList(target) {
-    if (!target) return;
-    target.textContent = "";
-
-    var query = String(S.search || "").toLowerCase();
-
-    var filtered = DEFAULT_MODS.filter(function (mod) {
-      var categoryMatch = S.filter === "All" || mod.category === S.filter;
-      var searchMatch = !query ||
-        mod.name.toLowerCase().indexOf(query) !== -1 ||
-        String(mod.desc || "").toLowerCase().indexOf(query) !== -1;
-
-      return categoryMatch && searchMatch;
-    });
-
-    if (!filtered.length) {
-      target.appendChild(element("div", {
-        class: "card ds-empty-state"
-      }, "No mods match that search."));
-      return;
-    }
-
-    filtered.forEach(function (mod) {
-      var enabled = !!S.mods[mod.id];
-
-      target.appendChild(element("article", {
-        class: "ds-mod-card"
-      },
-        element("div", { class: "ds-mod-card-top" },
-          element("span", { class: "ds-mod-icon" },
-            mod.code || mod.name.slice(0, 2).toUpperCase()
-          ),
-          element("span", { class: "ds-category-tag" }, mod.category)
-        ),
-
-        element("h3", {}, mod.name),
-        element("p", { class: "ds-muted" }, mod.desc || "Client modification."),
-
-        element("div", { class: "ds-mod-card-bottom" },
-          element("span", {
-            class: enabled ? "ds-enabled-label" : "ds-disabled-label"
-          }, enabled ? "● Enabled" : "○ Disabled"),
-
-          element("button", {
-            class: "btn" + (enabled ? " added" : " primary"),
-            type: "button",
-            onclick: function () {
-              S.mods[mod.id] = !enabled;
-              save();
-              toast(mod.name + (S.mods[mod.id] ? " enabled" : " disabled"));
-              render();
-            }
-          }, enabled ? "Disable" : "Enable")
-        )
-      ));
-    });
-  }
-
-  function wardrobePage() {
-    var p = profile();
-    var preview = element("div", { class: "ds-skin-preview" });
-
-    if (p.skin) {
-      preview.appendChild(element("img", {
-        src: p.skin,
-        alt: "Current Minecraft skin preview"
-      }));
-    } else {
-      preview.appendChild(element("div", {
-        class: "ds-skin-placeholder"
-      },
-        element("span", {}, "▧"),
-        element("small", {}, "NO CUSTOM SKIN")
-      ));
-    }
-
-    var fileInput = element("input", {
-      type: "file",
-      accept: "image/png",
-      class: "ds-file-input",
-      onchange: function (event) {
-        var file = event.target.files && event.target.files[0];
-        if (!file) return;
-
-        if (file.size > 2 * 1024 * 1024) {
-          toast("Please choose a skin PNG under 2 MB.");
-          return;
-        }
-
-        var reader = new FileReader();
-
-        reader.onload = function () {
-          var image = new Image();
-
-          image.onload = function () {
-            if (image.width !== 64 || image.height !== 64) {
-              toast("Minecraft skins must be 64 × 64 PNG files.");
-              return;
-            }
-
-            p.skin = reader.result;
-            save();
-            toast("Skin saved to this profile.");
-            render();
-          };
-
-          image.onerror = function () {
-            toast("That image could not be opened.");
-          };
-
-          image.src = reader.result;
-        };
-
-        reader.readAsDataURL(file);
-      }
-    });
-
-    return element("div", { class: "ds-page" },
-      heading("Wardrobe", "Customize the appearance saved to your profile."),
-
-      element("div", { class: "ds-wardrobe-layout" },
-        element("section", { class: "ds-wardrobe-stage" },
-          preview,
-          element("span", { class: "ds-muted" }, "Skin preview")
-        ),
-
-        element("section", { class: "card ds-wardrobe-controls" },
-          element("p", { class: "ds-eyebrow" }, "PLAYER PROFILE"),
-          element("h2", {}, p.name),
-          element("p", { class: "ds-muted" },
-            "Upload a standard 64 × 64 Minecraft skin PNG."
-          ),
-          fileInput,
-
-          element("button", {
-            class: "btn primary",
-            type: "button",
-            onclick: function () { fileInput.click(); }
-          }, "Upload skin"),
-
-          p.skin ? element("button", {
-            class: "btn",
-            type: "button",
-            onclick: function () {
-              p.skin = "";
-              save();
-              render();
-              toast("Skin reset.");
-            }
-          }, "Remove custom skin") : null
-        )
-      )
-    );
-  }
-
-  function settingsPage() {
-    var p = profile();
-
-    var accentButtons = Object.keys(ACCENTS).map(function (key) {
-      return element("button", {
-        class: "ds-accent-swatch" + (S.accent === key ? " selected" : ""),
-        type: "button",
-        title: key,
-        "aria-label": key + " accent",
-        style: { background: ACCENTS[key] },
-        onclick: function () {
-          S.accent = key;
-          save();
-          render();
-        }
-      });
-    });
-
-    return element("div", { class: "ds-page" },
-      heading("Settings", "Manage your Deepslate profile and preferences."),
-
-      element("div", { class: "ds-settings-grid" },
-
-        card("Player profile", "Your local in-client identity.",
-          element("div", { class: "ds-setting-row" },
-            element("div", {},
-              element("strong", {}, p.name),
-              element("small", {}, "Username")
-            ),
-
-            element("button", {
-              class: "btn",
-              type: "button",
-              onclick: function () {
-                ask("Change username", p.name, "Enter a username", function (value) {
-                  value = value.trim().slice(0, 16);
-                  if (!value) return toast("Username cannot be empty.");
-                  p.name = value;
-                  save();
-                  render();
-                });
-              }
-            }, "Edit")
-          )
-        ),
-
-        card("Client preferences", "Stored in this browser.",
-          element("div", { class: "ds-setting-row" },
-            element("div", {},
-              element("strong", {}, "Performance mode"),
-              element("small", {}, "Use the lightweight client layout")
-            ),
-
-            element("button", {
-              class: "btn" + (S.perfMode ? " primary" : ""),
-              type: "button",
-              onclick: function () {
-                S.perfMode = !S.perfMode;
-                save();
-                render();
-              }
-            }, S.perfMode ? "Enabled" : "Disabled")
-          ),
-
-          element("div", { class: "ds-setting-row" },
-            element("div", {},
-              element("strong", {}, "Accent color"),
-              element("small", {}, "Choose your interface highlight")
-            ),
-            element("div", { class: "ds-accent-list" }, accentButtons)
-          )
-        ),
-
-        card("Game session", "The game stays loaded while you use the launcher.",
-          element("div", { class: "ds-setting-row" },
-            element("div", {},
-              element("strong", {}, "Game status"),
-              element("small", {}, gameStarted ? "Game loaded this session" : "Not started yet")
-            ),
-
-            element("button", {
-              class: "btn primary",
-              type: "button",
-              onclick: function () {
-                if (gameStarted) go("game");
-                else launch();
-              }
-            }, gameStarted ? "Return to game" : "Start game")
-          )
-        )
-      )
-    );
-  }
-
-  function serversPage() {
-    var list = element("div", { class: "ds-server-list" });
-
-    S.servers.forEach(function (server, index) {
-      list.appendChild(element("article", {
-        class: "ds-server-card"
-      },
-        element("div", { class: "ds-server-symbol" }, "◎"),
-
-        element("div", { class: "ds-server-info" },
-          element("strong", {}, server.name),
-          element("small", {}, server.ip)
-        ),
-
-        element("button", {
-          class: "btn primary",
-          type: "button",
-          onclick: function () { launch(server.ip); }
-        }, "Join"),
-
-        element("button", {
-          class: "btn danger",
-          type: "button",
-          onclick: function () {
-            S.servers.splice(index, 1);
-            save();
-            render();
-          }
-        }, "Remove")
-      ));
-    });
-
-    if (!S.servers.length) {
-      list.appendChild(element("div", {
-        class: "card ds-empty-state"
-      }, "No saved servers yet. Add one to get started."));
-    }
-
-    return element("div", { class: "ds-page" },
-      heading(
-        "Servers",
-        "Save your favorite multiplayer destinations.",
-
-        element("button", {
-          class: "btn primary",
-          type: "button",
-          onclick: function () {
-            ask("Add a server", "", "Server address (wss://...)", function (address) {
-              address = address.trim();
-              if (!address) return;
-
-              var name = address.replace(/^wss?:\/\//, "").split("/")[0];
-              S.servers.push({ name: name, ip: address });
-              save();
-              render();
-            });
-          }
-        }, "+ Add server")
-      ),
-      list
-    );
-  }
-
-  var pages = {
-    home: homePage,
-    mods: modsPage,
-    wardrobe: wardrobePage,
-    settings: settingsPage,
-    servers: serversPage
-  };
-
-  function render() {
-    if (route === "game") return;
-
-    var view = document.getElementById("view");
-    if (!view) return;
-
-    view.textContent = "";
-    view.appendChild((pages[route] || pages.home)());
-
-    document.documentElement.style.setProperty(
-      "--accent",
-      ACCENTS[S.accent] || ACCENTS.periwinkle
-    );
-
-    document.body.classList.toggle("extra-dark", !!S.extraDark);
-    updateNavigation();
-  }
-
-  function ensureGameNav() {
-    var nav = document.getElementById("topnav");
-    if (!nav || nav.querySelector('[data-route="game"]')) return;
-
-    nav.appendChild(element("button", {
-      type: "button",
-      "data-route": "game"
-    }, "Game"));
-  }
-
-  function openSearch() {
-    ask("Search Deepslate", "", "Search mods, servers, settings...", function (query) {
-      query = query.trim().toLowerCase();
-      if (!query) return;
-
-      if (query.indexOf("server") !== -1) go("servers");
-      else if (query.indexOf("skin") !== -1 || query.indexOf("wardrobe") !== -1) go("wardrobe");
-      else if (query.indexOf("setting") !== -1) go("settings");
-      else if (query.indexOf("game") !== -1 || query.indexOf("play") !== -1) {
-        if (gameStarted) go("game");
-        else launch();
-      } else {
-        S.search = query;
-        S.filter = "All";
-        go("mods");
-      }
-    });
-  }
-
-  document.addEventListener("click", function (event) {
-    var target = event.target.closest("[data-route]");
-    if (!target) return;
-
-    event.preventDefault();
-    go(target.getAttribute("data-route"));
-  });
-
-  document.addEventListener("keydown", function (event) {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-      event.preventDefault();
-      openSearch();
-    }
-
-    if (event.key === "Escape" && route === "game" && !document.fullscreenElement) {
-      go("home");
-    }
-  });
-
-  function init() {
-    ensureGameNav();
-    buildGameShell();
-    render();
-
-    var searchButton = document.getElementById("commandHint");
-    if (searchButton) {
-      searchButton.addEventListener("click", openSearch);
-    }
-
-    save();
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+          el("span", {}, v.label),
+          el("span", {}, active ? "Selected" : "")
+Use code with caution.
+);
+})
+);
+modal("Select Game Version", list, function (close) {
+return [el("button", { class: "btn", type: "button", onclick: close }, "Close")];
+});
+}
+/* ========================================================================
+VIEWS
+======================================================================== */
+function renderHome() {
+var firstServer = S.servers[0];
+var modCount = enabledModCount();
+var hero = el("section", { class: "cr-hero" },
+el("div", { class: "cr-inst-label" }, S.inst),
+el("div", { class: "play-split" },
+el("button", {
+class: "play-main",
+type: "button",
+onclick: function () { launchGame(); }
+},
+el("strong", {}, gameStarted ? "RESUME " + S.version : "PLAY " + S.version),
+el("span", {}, (C.ENGINE && C.ENGINE.name ? C.ENGINE.name.toUpperCase() : "DEEPSLATE ENGINE") + " • READY")
+),
+el("button", {
+class: "play-drop",
+type: "button",
+"aria-label": "Change version",
+onclick: openVersionPicker
+}, "▾")
+),
+el("div", { class: "hero-sublinks" },
+el("button", {
+class: "hero-link-btn",
+type: "button",
+onclick: function () { go("mods"); }
+}, modCount + (modCount === 1 ? " mod on" : " mods on") + " · Manage mods"),
+firstServer ? el("button", {
+class: "hero-link-btn",
+type: "button",
+onclick: function () { launchGame(firstServer.ip); }
+}, "Rejoin " + firstServer.ip) : null
+),
+el("div", { class: "hero-stats" },
+el("span", {}, el("b", {}, "29"), " playing right now"),
+el("span", {}, el("b", {}, "965"), " in the last 24 hours")
+)
+);
+var topServers = el("section", { class: "top-servers-bar" },
+el("div", { class: "top-servers-left" },
+el("div", { class: "server-badge-icon" }, "⊞"),
+el("div", {},
+el("strong", {}, "Top servers"),
+el("span", {}, "Featured partner servers ready for one-click join.")
+)
+),
+el("button", {
+class: "btn primary",
+type: "button",
+onclick: function () { go("servers"); }
+}, "Browse servers")
+);
+var newsCol = el("div", {},
+el("div", { class: "section-head" },
+el("h2", {}, "Recent news"),
+el("span", {}, "Updates, new features, events")
+),
+el("div", { class: "news-grid" },
+NEWS_ITEMS.map(function (item) {
+return el("article", { class: "news-card" },
+el("div", {},
+el("div", { class: "news-date" }, item.date),
+el("h3", {}, item.title),
+el("p", {}, item.body)
+),
+el("div", { class: "news-foot" },
+el("span", {}, "Posted by " + item.author),
+el("button", {
+class: "btn pill",
+type: "button",
+onclick: function () {
+modal(item.title, el("p", { style: { color: "var(--muted)", lineHeight: "1.6", marginBottom: "16px" } }, item.body), function (close) {
+return [el("button", { class: "btn primary", type: "button", onclick: close }, "Done")];
+});
+}
+}, "Read more")
+)
+);
+})
+)
+);
+var sparkSvg = document.createElementNS("w3.org", "svg");
+sparkSvg.setAttribute("viewBox", "0 0 260 54");
+sparkSvg.setAttribute("class", "sparkline-box");
+var path = document.createElementNS("w3.org", "path");
+path.setAttribute("d", "M0,38 Q25,22 50,35 T100,26 T150,34 T200,20 T260,12");
+path.setAttribute("fill", "none");
+path.setAttribute("stroke", "#3ddc97");
+path.setAttribute("stroke-width", "2.5");
+sparkSvg.appendChild(path);
+var p = profile();
+var sideCol = el("aside", { class: "home-sidebar" },
+el("div", { class: "side-card" },
+el("div", { class: "live-head" },
+el("div", {},
+el("strong", {}, "Live players"),
+el("span", {}, "In Deepslate right now")
+),
+el("div", { class: "live-count" }, "29")
+),
+sparkSvg,
+el("div", { style: { display: "flex", justifyContent: "space-between", fontSize: "10.5px", color: "var(--muted-2)" } },
+el("span", {}, "24h ago"),
+el("span", {}, "965 played"),
+el("span", {}, "Now")
+)
+),
+el("div", { class: "side-card" },
+el("div", { class: "friends-head" },
+el("span", {}, "Friends online"),
+el("span", { style: { color: "var(--muted)" } }, String(p.friends.length))
+),
+el("div", { class: "friends-list" },
+p.friends.map(function (f) {
+return el("div", { class: "friend-row" },
+el("strong", {}, f.name),
+el("span", { style: { color: "var(--green)", fontSize: "11px" } }, f.note || "Online")
+);
+})
+),
+el("button", {
+class: "btn",
+type: "button",
+style: { width: "100%" },
+onclick: function () {
+ask("Add friend", "", "Enter player username", function (name) {
+if (!name.trim()) return;
+p.friends.push({ name: name.trim(), note: "Added" });
+save();
+render();
+toast("Added " + name.trim());
+});
+}
+}, "Find friends")
+)
+);
+var strip = el("section", {},
+el("div", { class: "section-head" },
+el("h2", {}, DEFAULT_MODS.length + " mods, one click each"),
+el("span", {}, "PvP tweaks, HUDs, shaders, performance and more")
+),
+el("div", { class: "mods-strip" },
+DEFAULT_MODS.map(function (m) {
+return el("div", {
+class: "strip-card",
+onclick: function () { go("mods"); }
+},
+el("div", { class: "mod-icon-box" }, m.code || m.name.slice(0, 2).toUpperCase()),
+el("strong", {}, m.name)
+);
+})
+)
+);
+return [
+hero,
+topServers,
+el("div", { class: "home-grid" }, newsCol, sideCol),
+strip
+];
+}
+function renderMods() {
+var categories = ["All", "Performance", "Visuals", "HUD", "PvP", "Utility"];
+var q = (S.search || "").toLowerCase();
+var filtered = DEFAULT_MODS.filter(function (m) {
+var matchCat = S.filter === "All" || m.category === S.filter;
+var matchText = !q || m.name.toLowerCase().indexOf(q) !== -1 || m.desc.toLowerCase().indexOf(q) !== -1;
+return matchCat && matchText;
+});
+var header = el("div", { class: "section-head" },
+el("h2", {}, "Browse mods"),
+el("span", {}, "Adding to " + S.inst)
+);
+var banner = el("div", { class: "featured-mod-banner" },
+el("div", { class: "featured-mod-info" },
+el("div", { class: "featured-mod-icon" }, "DS"),
+el("div", {},
+el("strong", { style: { fontSize: "16px" } }, "Deepslate Visuals", el("span", { class: "tag-badge" }, "Official")),
+el("p", { style: { color: "var(--muted)", fontSize: "12.5px", marginTop: "4px" } }, "Official Deepslate Client visuals: custom skies, clear glass, smooth HUD, and motion blur.")
+)
+),
+el("button", {
+class: S.mods["fullbright"] ? "btn added" : "btn primary",
+type: "button",
+onclick: function () {
+S.mods["fullbright"] = !S.mods["fullbright"];
+save();
+render();
+toast(S.mods["fullbright"] ? "Added Deepslate Visuals" : "Removed Deepslate Visuals");
+}
+}, S.mods["fullbright"] ? "✓ Added" : "+ Add to Instance")
+);
+var searchBox = el("input", {
+class: "search-input",
+type: "search",
+value: S.search,
+placeholder: "Search " + DEFAULT_MODS.length + " mods...",
+oninput: function (e) {
+S.search = e.target.value;
+render();
+}
+});
+var toolbar = el("div", { class: "mods-toolbar" },
+searchBox,
+el("div", { class: "filter-pills" },
+categories.map(function (cat) {
+return el("button", {
+class: "filter-pill" + (S.filter === cat ? " active" : ""),
+type: "button",
+onclick: function () {
+S.filter = cat;
+render();
+}
+}, cat);
+})
+)
+);
+var grid = el("div", { class: "mods-grid" },
+filtered.map(function (m) {
+var added = !!S.mods[m.id];
+return el("article", { class: "mod-card" },
+el("div", {},
+el("div", { class: "mod-card-top" },
+el("div", { class: "mod-card-title" },
+el("div", { class: "mod-icon-box" }, m.code || m.name.slice(0, 2).toUpperCase()),
+el("div", {},
+el("strong", {}, m.name),
+el("small", {}, "by " + (m.author || "Deepslate") + " · " + m.category)
+)
+),
+el("button", {
+class: added ? "btn added" : "btn primary",
+type: "button",
+onclick: function () {
+S.mods[m.id] = !added;
+save();
+render();
+toast((!added ? "Enabled " : "Disabled ") + m.name);
+}
+}, added ? "✓ Added" : "+ Add")
+),
+el("p", { style: { marginTop: "12px" } }, m.desc)
+)
+);
+})
+);
+return [header, banner, toolbar, grid];
+}
+function renderServers() {
+var top = el("div", { class: "section-head" },
+el("h2", {}, "Multiplayer servers"),
+el("button", {
+class: "btn primary",
+type: "button",
+onclick: function () {
+ask("Add server IP", "", "wss://example.com", function (ip) {
+if (!ip.trim()) return;
+S.servers.push({ name: ip.trim(), ip: ip.trim(), version: S.version });
+save();
+render();
+toast("Server added");
+});
+}
+}, "+ Add server")
+);
+var list = el("div", { class: "servers-grid" },
+S.servers.map(function (srv, idx) {
+return el("div", { class: "server-card" },
+el("div", {},
+el("strong", { style: { display: "block", fontSize: "14px" } }, srv.name),
+el("span", { style: { color: "var(--muted)", fontSize: "12px", fontFamily: "var(--font-mono)" } }, srv.ip)
+),
+el("div", { style: { display: "flex", gap: "8px" } },
+el("button", {
+class: "btn primary",
+type: "button",
+onclick: function () { launchGame(srv.ip); }
+}, "Join"),
+idx > 1 ? el("button", {
+class: "btn danger",
+type: "button",
+onclick: function () {
+S.servers.splice(idx, 1);
+save();
+render();
+}
+}, "×") : null
+)
+);
+})
+);
+return [top, list];
+}
+function renderWardrobe() {
+var p = profile();
+var poses = ["Idle", "Walk", "Run", "Wave", "Crouch", "Dance"];
+var slim = p.model === "Slim";
+var figure = el("div", { class: "skin-figure pose-" + S.pose },
+el("div", { class: "mc-head" }),
+el("div", { class: "mc-torso-row" },
+el("div", { class: "mc-arm" + (slim ? " slim" : "") }),
+el("div", { class: "mc-body" }),
+el("div", { class: "mc-arm" + (slim ? " slim" : "") })
+),
+el("div", { class: "mc-legs" },
+el("div", { class: "mc-leg" }),
+el("div", { class: "mc-leg" })
+)
+);
+var stage = el("div", { class: "wardrobe-stage" },
+el("strong", { style: { fontSize: "14px" } }, p.name),
+figure,
+el("div", { class: "pose-bar" },
+poses.map(function (pose) {
+return el("button", {
+class: S.pose === pose ? "active" : "",
+type: "button",
+onclick: function () {
+S.pose = pose;
+save();
+render();
+}
+}, pose);
+})
+)
+);
+var panel = el("aside", { class: "wardrobe-panel" },
+el("div", {},
+el("strong", { style: { display: "block", marginBottom: "8px" } }, "Upload a skin"),
+el("div", {
+class: "upload-drop",
+onclick: function () { toast("Select a 64x64 PNG skin file."); }
+}, "Click to upload PNG skin (64x64)")
+),
+el("div", {},
+el("strong", { style: { display: "block", marginBottom: "8px", fontSize: "11px", color: "var(--muted)", letterSpacing: ".08em" } }, "MODEL"),
+el("div", { class: "model-toggle" },
+["Classic", "Slim"].map(function (m) {
+return el("button", {
+class: p.model === m ? "active" : "",
+type: "button",
+onclick: function () {
+p.model = m;
+save();
+render();
+toast("Model set to " + m);
+}
+}, m + (m === "Classic" ? " (4px)" : " (3px)"));
+})
+)
+),
+el("div", { style: { marginTop: "auto", fontSize: "12px", color: "var(--green)" } },
+"✓ Saved. Friends see it in game too."
+)
+);
+return [
+el("div", { class: "section-head" },
+el("h2", {}, "Wardrobe"),
+el("span", {}, "Customize your character model and pose")
+),
+el("div", { class: "wardrobe-layout" }, stage, panel)
+];
+}
+function renderSettings() {
+var p = profile();
+var tabs = ["My account", "Appearance", "Game & sync", "Your data"];
+var nav = el("aside", { class: "settings-nav" },
+el("div", { class: "settings-user-card" },
+el("div", { class: "avatar-head", style: { width: "34px", height: "34px", fontSize: "15px" } }, p.name.charAt(0).toUpperCase()),
+el("div", {},
+el("strong", { style: { display: "block", fontSize: "13.5px" } }, p.name),
+el("span", { style: { fontSize: "11.5px", color: "var(--muted)" } }, "Deepslate account")
+)
+),
+tabs.map(function (t) {
+return el("button", {
+class: S.stTab === t ? "active" : "",
+type: "button",
+onclick: function () {
+S.stTab = t;
+save();
+render();
+}
+}, t);
+})
+);
+var content = [];
+if (S.stTab === "My account") {
+content.push(
+el("div", { class: "section-head" }, el("h2", {}, "My account"), el("span", {}, "Manage your profile")),
+el("div", { class: "settings-card" },
+el("div", { class: "settings-row" },
+el("div", {},
+el("strong", {}, "Username"),
+el("p", {}, "Currently signed in as " + p.name)
+),
+el("button", {
+class: "btn",
+type: "button",
+onclick: function () {
+ask("Change username", p.name, "Username", function (val) {
+if (!val.trim()) return;
+p.name = val.trim();
+save();
+applyTheme();
+render();
+toast("Username updated");
+});
+}
+}, "Edit")
+)
+)
+);
+} else if (S.stTab === "Appearance") {
+content.push(
+el("div", { class: "section-head" }, el("h2", {}, "Appearance"), el("span", {}, "Theme & accent colors")),
+el("div", { class: "settings-card" },
+el("h3", {}, "Accent color"),
+el("div", { style: { display: "flex", gap: "8px", flexWrap: "wrap" } },
+Object.keys(ACCENTS).map(function (key) {
+return el("button", {
+class: S.accent === key ? "btn primary" : "btn",
+type: "button",
+onclick: function () {
+S.accent = key;
+save();
+applyTheme();
+render();
+}
+}, key.charAt(0).toUpperCase() + key.slice(1));
+})
+)
+),
+el("div", { class: "settings-card" },
+el("div", { class: "settings-row" },
+el("div", {},
+el("strong", {}, "OLED Pure Black Mode"),
+el("p", {}, "Use pure black backgrounds across the launcher.")
+),
+el("button", {
+class: S.extraDark ? "btn primary" : "btn",
+type: "button",
+onclick: function () {
+S.extraDark = !S.extraDark;
+save();
+applyTheme();
+render();
+}
+}, S.extraDark ? "On" : "Off")
+)
+)
+);
+} else if (S.stTab === "Game & sync") {
+content.push(
+el("div", { class: "section-head" }, el("h2", {}, "Game & sync"), el("span", {}, "Instance and engine settings")),
+el("div", { class: "settings-card" },
+el("div", { class: "settings-row" },
+el("div", {},
+el("strong", {}, "Instance name"),
+el("p", {}, S.inst)
+),
+el("button", {
+class: "btn",
+type: "button",
+onclick: function () {
+ask("Rename instance", S.inst, "MY INSTANCE 1", function (val) {
+if (!val.trim()) return;
+S.inst = val.trim().toUpperCase();
+save();
+render();
+});
+}
+}, "Rename")
+)
+)
+);
+} else {
+content.push(
+el("div", { class: "section-head" }, el("h2", {}, "Your data"), el("span", {}, "Take a copy of your account, or reset it.")),
+el("div", { class: "settings-card" },
+el("h3", {}, "Download your data"),
+el("div", { class: "settings-row" },
+el("div", {},
+el("strong", {}, "Account copy"),
+el("p", {}, "Your profile, settings, friends, and enabled mods as one JSON file.")
+),
+el("button", {
+class: "btn",
+type: "button",
+onclick: function () {
+var blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
+var url = URL.createObjectURL(blob);
+var a = document.createElement("a");
+a.href = url;
+a.download = "deepslate-account-backup.json";
+a.click();
+URL.revokeObjectURL(url);
+toast("Downloaded account backup");
+}
+}, "Download")
+)
+),
+el("div", { class: "settings-card" },
+el("h3", {}, "Reset launcher data"),
+el("p", { style: { color: "var(--muted)", fontSize: "12.5px", marginBottom: "14px" } }, "Clears your local profile, saved servers, and mod selections in this browser."),
+el("button", {
+class: "btn danger",
+type: "button",
+onclick: function () {
+localStorage.removeItem(STORAGE_KEY);
+location.reload();
+}
+}, "Reset my data")
+)
+);
+}
+return [el("div", { class: "settings-layout" }, nav, el("div", {}, content))];
+}
+/* ========================================================================
+NAVIGATION & RENDER LOOP
+======================================================================== */
+function go(nextRoute) {
+route = nextRoute || "home";
+if (gameHost) gameHost.classList.add("is-hidden");
+var buttons = document.querySelectorAll("[data-route]");
+for (var i = 0; i < buttons.length; i++) {
+var btn = buttons[i];
+if (btn.closest("#topnav")) {
+btn.classList.toggle("active", btn.getAttribute("data-route") === route);
+}
+}
+render();
+}
+function render() {
+var view = document.getElementById("view");
+if (!view) return;
+view.innerHTML = "";
+var nodes = [];
+if (route === "mods") nodes = renderMods();
+else if (route === "servers") nodes = renderServers();
+else if (route === "wardrobe") nodes = renderWardrobe();
+else if (route === "settings") nodes = renderSettings();
+else nodes = renderHome();
+nodes.forEach(function (n) {
+if (n) view.appendChild(n);
+});
+}
+function init() {
+applyTheme();
+document.addEventListener("click", function (e) {
+var target = e.target.closest("[data-route]");
+if (target) {
+go(target.getAttribute("data-route"));
+}
+});
+var searchBtn = document.getElementById("commandHint");
+if (searchBtn) {
+searchBtn.addEventListener("click", function () {
+go("mods");
+window.setTimeout(function () {
+var input = document.querySelector(".search-input");
+if (input) input.focus();
+}, 40);
+});
+}
+document.addEventListener("keydown", function (e) {
+if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+e.preventDefault();
+go("mods");
+window.setTimeout(function () {
+var input = document.querySelector(".search-input");
+if (input) input.focus();
+}, 40);
+}
+});
+go("home");
+}
+if (document.readyState === "loading") {
+document.addEventListener("DOMContentLoaded", init);
+} else {
+init();
+}
 })();
-```
