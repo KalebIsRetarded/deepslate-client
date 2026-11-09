@@ -1,3 +1,4 @@
+
 (function () {
   "use strict";
 
@@ -7,21 +8,10 @@
     minecraftVersion: "1.21.11",
 
     /*
-      GAME URL
-      Where the Eaglercraft game page lives.
-
-      Option A (same site):   "client/game.html"
-        -> put the game file at client/game.html next to index.html.
-        -> NOTE: Cloudflare Pages refuses any single file over 25 MiB,
-           and your game file is about 44 MiB, so Option A will NOT
-           deploy on Cloudflare Pages.
-
-      Option B (other host):  "https://your-name.github.io/deepslate-game/game.html"
-        -> host the game file somewhere with a bigger file limit
-           (GitHub Pages allows 100 MB per file) and paste the full
-           https:// address here.
+      EAGLERCRAFT GAME
+      Hosted on Cloudflare R2.
     */
-    gameUrl: "client/game.html",
+    gameUrl: "https://pub-565a0da417474afaae43a867f1aeeaa8.r2.dev/Chromium-Client-vanilla.html",
 
     accent: "#9b8cff",
     background: "#0b0d12",
