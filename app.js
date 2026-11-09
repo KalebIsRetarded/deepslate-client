@@ -1,4 +1,3 @@
-
 (function () {
   "use strict";
 
@@ -442,22 +441,38 @@
     `;
   }
 
+  /*
+    FIXED IN STAGE 1:
+    The old loadScript() tagged every script with the same marker, so
+    once the Supabase script was added, the skin viewer script was
+    mistaken for "already loaded" (or the other way around), and one
+    of the two libraries never loaded. Scripts are now tracked by
+    their own URL.
+  */
   function loadScript(url) {
     return new Promise((resolve, reject) => {
-      const existing = document.querySelector('script[data-deepslate-skinview]');
+      const existing = Array.from(document.scripts).find(
+        script => script.dataset.deepslateSrc === url
+      );
 
       if (existing) {
-        if (window.skinview3d) return resolve();
+        if (existing.dataset.loaded === "true") {
+          resolve();
+          return;
+        }
 
-        existing.addEventListener("load", resolve, { once: true });
+        existing.addEventListener("load", () => resolve(), { once: true });
         existing.addEventListener("error", reject, { once: true });
         return;
       }
 
       const script = document.createElement("script");
       script.src = url;
-      script.dataset.deepslateSkinview = "true";
-      script.onload = resolve;
+      script.dataset.deepslateSrc = url;
+      script.onload = function () {
+        script.dataset.loaded = "true";
+        resolve();
+      };
       script.onerror = reject;
       document.head.appendChild(script);
     });
@@ -498,6 +513,7 @@
         skinViewer.controls.enablePan = false;
       }
 
+      window.removeEventListener("resize", resizeSkinViewer);
       window.addEventListener("resize", resizeSkinViewer);
     } catch (error) {
       const fallback = document.getElementById("skin-viewer-fallback");
@@ -1202,40 +1218,72 @@
 
   /* GAME */
 
-  function connectGame() {
-    const url = String(C.gameUrl || "").trim();
+  /*
+    STAGE 1: the game page is loaded in an iframe that stays mounted
+    while you move between launcher sections.
 
-    if (!url) {
+    config.js -> gameUrl can be:
+      - a path on this site, e.g. "client/game.html"
+      - a full https:// address on another host
+
+    The game is a separate page, so it keeps its own saved worlds
+    and settings in the browser.
+  */
+  function resolveGameUrl() {
+    const raw = String(C.gameUrl || "").trim();
+
+    if (!raw) {
       toast("The Minecraft game URL has not been configured yet.");
-      return;
+      return null;
     }
 
     let parsed;
 
     try {
-      parsed = new URL(url);
+      // The second argument lets relative paths like "client/game.html" work.
+      parsed = new URL(raw, window.location.href);
     } catch (error) {
       toast("The configured game URL is invalid.");
-      return;
+      return null;
     }
 
-    if (parsed.protocol !== "https:" && parsed.hostname !== "localhost") {
+    const isLocal =
+      parsed.hostname === "localhost" ||
+      parsed.hostname === "127.0.0.1";
+
+    if (parsed.protocol !== "https:" && !isLocal) {
       toast("The game URL must use HTTPS.");
-      return;
+      return null;
     }
 
-    if (!gameFrameWrap.querySelector("iframe")) {
-      const frame = document.createElement("iframe");
+    return parsed;
+  }
 
-      frame.className = "game-frame";
-      frame.title = "Deepslate Minecraft Game";
-      frame.allow = "fullscreen; autoplay; gamepad";
-      frame.referrerPolicy = "strict-origin-when-cross-origin";
-      frame.src = parsed.href;
+  function connectGame() {
+    if (gameFrameWrap.querySelector("iframe")) return;
 
-      gameFrameWrap.innerHTML = "";
-      gameFrameWrap.appendChild(frame);
-    }
+    const parsed = resolveGameUrl();
+    if (!parsed) return;
+
+    const frame = document.createElement("iframe");
+
+    frame.className = "game-frame";
+    frame.title = "Deepslate Minecraft Game";
+    // fullscreen: game fullscreen / F11
+    // microphone: reserved for the upcoming voice chat stage
+    // clipboard-*: lets you paste into chat inside the game
+    frame.allow = "fullscreen; autoplay; gamepad; microphone; clipboard-read; clipboard-write";
+    frame.setAttribute("allowfullscreen", "");
+    frame.referrerPolicy = "strict-origin-when-cross-origin";
+    frame.src = parsed.href;
+
+    // The placeholder stays visible until the game page has loaded.
+    frame.addEventListener("load", function () {
+      const placeholder = document.getElementById("game-placeholder");
+      if (placeholder) placeholder.remove();
+    });
+
+    gameFrameWrap.appendChild(frame);
   }
 
   function reloadGame() {
@@ -1247,6 +1295,27 @@
     } else {
       connectGame();
     }
+  }
+
+  function toggleFullscreen() {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(function () {});
+      return;
+    }
+
+    if (!gameFrameWrap.querySelector("iframe")) {
+      toast("The game has not loaded yet.");
+      return;
+    }
+
+    if (!gameFrameWrap.requestFullscreen) {
+      toast("Fullscreen is not supported in this browser.");
+      return;
+    }
+
+    gameFrameWrap.requestFullscreen().catch(function () {
+      toast("The browser blocked fullscreen.");
+    });
   }
 
   /* SOCIAL HELPERS */
@@ -1629,6 +1698,12 @@
 
   if (reloadButton) {
     reloadButton.addEventListener("click", reloadGame);
+  }
+
+  const fullscreenButton = document.getElementById("fullscreen-game");
+
+  if (fullscreenButton) {
+    fullscreenButton.addEventListener("click", toggleFullscreen);
   }
 
   const searchButton = document.getElementById("search-button");
