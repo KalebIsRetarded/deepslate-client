@@ -70,17 +70,84 @@ footer a{color:#c9a8ff;text-decoration:none}
 .primary{border:0;border-radius:10px;padding:12px 19px;background:linear-gradient(100deg,#8c5be8,#c27bfa);color:white;font-weight:800;cursor:pointer}
 .secondary{border:1px solid var(--line);border-radius:10px;padding:11px 15px;background:#ffffff08;color:white;cursor:pointer}
 .modal-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
-#playerView{position:fixed;inset:0;z-index:60;background:#050409;display:none;flex-direction:column}
+
+/* FULL-PAGE PLAYER */
+
+#playerView{
+  position:fixed;
+  inset:0;
+  z-index:60;
+  background:#050409;
+  display:none;
+  flex-direction:column;
+  width:100%;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+}
 #playerView.show{display:flex}
-.player-top{height:65px;display:flex;align-items:center;gap:15px;padding:0 22px;border-bottom:1px solid var(--line)}
-.player-top h2{font-size:15px;margin:0}
-.player-stage{flex:1;display:grid;place-items:center;padding:18px}
-.player-stage iframe,.player-stage video{width:min(1100px,100%);height:min(70vh,680px);border:0;border-radius:12px;background:#000}
-.player-message{max-width:520px;text-align:center;color:var(--muted);line-height:1.7}
+.player-top{
+  flex-shrink:0;
+  height:68px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:0 25px;
+  background:#0c0a12;
+  border-bottom:1px solid var(--line);
+}
+.player-top h2{
+  font-size:16px;
+  margin:0;
+  font-weight:750;
+}
+.player-stage{
+  flex:1;
+  min-height:0;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  background:#000;
+  overflow:hidden;
+}
+.player-stage iframe,
+.player-stage video{
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:none;
+  max-height:none;
+  border:0;
+  border-radius:0;
+  background:#000;
+}
+.player-message{
+  max-width:520px;
+  text-align:center;
+  color:var(--muted);
+  line-height:1.7;
+  padding:25px;
+}
 .player-message h3{color:#fff}
-.back{background:#ffffff10;color:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 13px;cursor:pointer}
+.back{
+  background:#ffffff10;
+  color:#fff;
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:9px 15px;
+  cursor:pointer;
+  transition:.2s;
+}
+.back:hover{
+  background:#a879ff30;
+  border-color:#a879ff;
+}
+
 .toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:90;background:#211a30;border:1px solid #a879ff66;padding:12px 17px;border-radius:10px;color:#fff;transition:.25s;box-shadow:0 10px 35px #0008}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+
 @media(max-width:700px){
 header{height:auto;min-height:68px;flex-wrap:wrap;padding:12px 16px}
 .brand{font-size:21px}
@@ -93,6 +160,8 @@ nav button{padding:8px;font-size:12px}
 .modal-poster{height:220px;min-height:0}
 .modal-info{padding:20px}
 .hero{min-height:260px;padding-top:35px}
+.player-top{height:58px;padding:0 14px}
+.player-stage{padding:0}
 }
 </style>
 </head>
@@ -224,11 +293,14 @@ nav button{padding:8px;font-size:12px}
 
 <div id="playerView">
   <div class="player-top">
-    <button class="back" onclick="exitPlayer()">← Back</button>
-    <h2 id="playerTitle"></h2>
+    <button class="back" onclick="exitPlayer()">← Back to LUMA</button>
+    <h2 id="playerTitle">Now Playing</h2>
   </div>
   <div class="player-stage" id="playerStage">
-    <div class="player-message"><h3>Ready when you are</h3><p>Select a title to begin.</p></div>
+    <div class="player-message">
+      <h3>Ready when you are</h3>
+      <p>Select a title to begin.</p>
+    </div>
   </div>
 </div>
 
@@ -832,8 +904,16 @@ function closeModal(){
   $("detailsModal").classList.remove("show");
 }
 
+/* =====================================================
+   FULL-PAGE PLAYER NAVIGATION
+   Opens the player as its own page inside LUMA.
+   The URL changes to #watch/MOVIE-ID.
+   Browser Back and the Back button both return to LUMA.
+   ===================================================== */
+
 function enterPlayer(item){
   closeModal();
+
   if(!item.video){
     toast("A playback source hasn't been added for this title yet.");
     return;
@@ -842,6 +922,14 @@ function enterPlayer(item){
   const stage=$("playerStage");
   stage.innerHTML="";
   $("playerTitle").textContent=item.title;
+  currentItem=item;
+
+  // Add a browser-history entry for the player page.
+  history.pushState(
+    {lumaPlayer:item.id},
+    "",
+    "#watch/"+encodeURIComponent(item.id)
+  );
 
   if(item.type==="video"){
     const video=document.createElement("video");
@@ -853,7 +941,9 @@ function enterPlayer(item){
     const saved=Number(localStorage.getItem("luma-progress-"+item.id)||0);
 
     video.addEventListener("loadedmetadata",()=>{
-      if(saved>0&&saved<video.duration-5)video.currentTime=saved;
+      if(saved>0&&saved<video.duration-5){
+        video.currentTime=saved;
+      }
     });
 
     video.addEventListener("timeupdate",()=>{
@@ -867,7 +957,6 @@ function enterPlayer(item){
     });
 
     stage.appendChild(video);
-    currentItem=item;
   }else{
     const frame=document.createElement("iframe");
     frame.src=item.video;
@@ -878,15 +967,36 @@ function enterPlayer(item){
   }
 
   $("playerView").classList.add("show");
+  document.body.style.overflow="hidden";
+  window.scrollTo(0,0);
   playTone(700,.08);
 }
 
-function exitPlayer(){
+function exitPlayer(updateHistory=true){
+  // If the player has its own history entry, go back to the previous page.
+  if(updateHistory&&location.hash.startsWith("#watch/")){
+    history.back();
+    return;
+  }
+
+  closePlayerPage();
+}
+
+function closePlayerPage(){
   $("playerView").classList.remove("show");
   $("playerStage").innerHTML="";
+  document.body.style.overflow="";
+  currentItem=null;
   renderContinue();
   playTone(400,.05);
 }
+
+// Handle the browser's Back button.
+window.addEventListener("popstate",()=>{
+  if($("playerView").classList.contains("show")){
+    closePlayerPage();
+  }
+});
 
 function renderContinue(){
   const progress=movieSlots.filter(x=>
