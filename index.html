@@ -1,46 +1,975 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><title>Deepslate Vanilla Patcher</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:16px system-ui;background:#16191d;color:#eee;max-width:800px;margin:35px auto;padding:20px}button{padding:12px;margin:12px 0}a{color:#aaddff}pre{white-space:pre-wrap}</style><h1>Deepslate vanilla patcher</h1><p>Select the original Chromium-Client-vanilla.html (288,172,563 bytes). Your original is not overwritten. This tool changes known plain-text branding, titles and identifiable loading images, not encoded game assets. No files are uploaded.</p><input type="file" id="file" accept=".html"><br><button id="go">Create modified copy</button><p id="status"></p><div id="links"></div><pre id="log"></pre><script>
-'use strict';
-const image='https://minecraft.wiki/images/Deepslate_%28UD%29_JE3_BE2.png?7635f';
-const status=document.getElementById('status'),go=document.getElementById('go');
-go.onclick=async()=>{
-const f=document.getElementById('file').files[0];
-if(!f||f.name!=='Chromium-Client-vanilla.html'||f.size!==288172563){status.textContent='Select the original vanilla file matching the inspected report. Other files are deliberately not accepted.';return;}
-go.disabled=true;document.getElementById('links').replaceChildren();
-try{
-const edits=[],counts={};const decoder=new TextDecoder('windows-1252');
-const size=1024*1024,overlap=262144;
-const pattern=/<img\b[^>]{0,200000}>|<link\b[^>]{0,200000}>|<title>[^<]{0,400}<\/title>|Chromium Client|Chromium Visuals|\[Chromium\]|\[ChromiumVoice\]/g;
-for(let start=0;start<f.size;start+=size){
-status.textContent='Inspecting and preparing changes: '+Math.round(start/f.size*100)+'%';
-const text=decoder.decode(await f.slice(start,Math.min(f.size,start+size+overlap)).arrayBuffer());pattern.lastIndex=0;let m;
-while((m=pattern.exec(text))){if(m.index>=size)break;
-const old=m[0];let replacement=old,label='';
-if(old.startsWith('<title>')){replacement='<title>Eaglercraft</title>';label='tab titles';}
-else if(old.startsWith('<img')){
- if(/alt\s*=\s*["']Chromium Client["']|class\s*=\s*["'][^"']*\bcb-logo\b/.test(old)){
- replacement=old.replace(/src\s*=\s*(["'])[^"']*\1/i,'src="'+image+'"').replace(/Chromium Client/g,'Deepslate Client');label='loading images';
- }
-}else if(old.startsWith('<link')){
- if(/rel\s*=\s*["'](?:shortcut icon|icon|apple-touch-icon)["']/i.test(old)){replacement=old.replace(/href\s*=\s*(["'])[^"']*\1/i,'href="'+image+'"');label='icons';}
-}else{
- const after=text.slice(m.index+old.length,m.index+old.length+50);
- if(old==='Chromium Client'&&/^ Native Ping\.exe/.test(after))continue;
- replacement=old.replace('Chromium','Deepslate');label='plain-text branding';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUMA — Your Entertainment Space</title>
+<style>
+:root{--bg:#08070d;--panel:#12101b;--panel2:#191525;--text:#f7f4ff;--muted:#aaa3bb;--purple:#a879ff;--pink:#df8bff;--line:rgba(255,255,255,.09)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh;overflow-x:hidden}
+#ambient{position:fixed;inset:0;z-index:-2;background:radial-gradient(circle at 50% -20%,#291747 0,transparent 45%),linear-gradient(145deg,#09070f,#08070d 60%,#10091a)}
+#cursorGlow{position:fixed;width:440px;height:440px;border-radius:50%;pointer-events:none;z-index:-1;background:radial-gradient(circle,rgba(155,94,255,.13),transparent 68%);transform:translate(-50%,-50%)}
+#particles{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.48}
+header{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,5vw,72px);border-bottom:1px solid var(--line);background:rgba(8,7,13,.72);backdrop-filter:blur(18px);position:sticky;top:0;z-index:20}
+.brand{font-weight:900;letter-spacing:.16em;font-size:25px;background:linear-gradient(100deg,#fff 5%,#c5a1ff 48%,#e89dff 90%);-webkit-background-clip:text;background-clip:text;color:transparent;cursor:pointer}
+nav{display:flex;gap:8px;align-items:center}
+nav button,.icon-btn{border:0;background:transparent;color:var(--muted);padding:10px 13px;border-radius:10px;cursor:pointer;font-size:14px;transition:.2s}
+nav button:hover,nav button.active,.icon-btn:hover{background:#ffffff10;color:#fff}
+.header-right{display:flex;gap:8px;align-items:center}
+.sound{border:1px solid var(--line);border-radius:99px;padding:8px 12px;color:var(--muted);background:#ffffff08;cursor:pointer}
+main{max-width:1400px;margin:auto;padding:30px clamp(18px,5vw,72px) 80px}
+.view{display:none;animation:fade .35s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hero{min-height:330px;padding:55px 0 38px;display:flex;flex-direction:column;justify-content:center}
+.eyebrow{color:#c9a8ff;text-transform:uppercase;letter-spacing:.22em;font-size:11px;font-weight:800}
+.hero h1{font-size:clamp(42px,7vw,76px);line-height:1.02;letter-spacing:-.055em;margin:15px 0;max-width:800px}
+.gradient{background:linear-gradient(100deg,#fff,#c8a2ff 55%,#eaa2ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);font-size:16px;max-width:560px;line-height:1.7;margin:0}
+.section-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin:32px 0 17px}
+.section-head h2{font-size:22px;margin:0;letter-spacing:-.03em}
+.section-head p{color:var(--muted);margin:5px 0 0;font-size:13px}
+.category-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.category-card{height:250px;border:1px solid var(--line);border-radius:17px;overflow:hidden;position:relative;background:linear-gradient(135deg,#211735,#100e18);cursor:pointer;transition:.25s;isolation:isolate}
+.category-card:hover{transform:translateY(-5px);border-color:#a879ff80;box-shadow:0 18px 50px #0008}
+.category-card img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;z-index:-2;opacity:.72;transition:.4s}
+.category-card:hover img{transform:scale(1.05)}
+.category-card:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,#09070ff2,#09070f10 90%)}
+.category-content{position:absolute;left:22px;bottom:20px}
+.category-content span{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#d7c5ff}
+.category-content h3{font-size:27px;margin:5px 0 0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}
+.search{flex:1;min-width:200px;background:#ffffff09;border:1px solid var(--line);border-radius:11px;padding:12px 15px;color:#fff;outline:none}
+.search:focus{border-color:#a879ff99}
+.filter{background:#15121f;color:#eee;border:1px solid var(--line);border-radius:11px;padding:11px 13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:19px}
+.movie-card{min-width:0;cursor:pointer;transition:.22s}
+.movie-card:hover{transform:translateY(-4px)}
+.poster{aspect-ratio:2/3;border-radius:12px;overflow:hidden;background:linear-gradient(145deg,#251b38,#11101a);border:1px solid var(--line);position:relative;display:grid;place-items:center}
+.poster img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.poster-placeholder{padding:12px;text-align:center;color:#bda8df;font-weight:750;font-size:13px;line-height:1.4}
+.poster:after{content:"";position:absolute;inset:50% 0 0;background:linear-gradient(transparent,#08070d66);pointer-events:none}
+.movie-card h3{font-size:14px;line-height:1.4;margin:9px 1px 3px}
+.movie-card .meta{color:var(--muted);font-size:11px;margin:0 1px}
+.empty{padding:40px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px;grid-column:1/-1}
+.coming{min-height:430px;display:grid;place-items:center;text-align:center;position:relative;overflow:hidden}
+.coming h2{font-size:clamp(42px,8vw,82px);letter-spacing:.12em;margin:0;text-shadow:0 0 25px #a879ff88;color:#e2c9ff}
+.coming p{color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:25px clamp(18px,5vw,72px);text-align:center;color:#8f879e;font-size:12px}
+footer a{color:#c9a8ff;text-decoration:none}
+.modal{position:fixed;inset:0;z-index:50;background:#000b;display:none;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.modal-box{width:min(760px,100%);background:#14111e;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 25px 90px #000b;display:grid;grid-template-columns:210px 1fr}
+.modal-poster{background:#211735;min-height:300px;position:relative}
+.modal-poster img{width:100%;height:100%;object-fit:cover;position:absolute}
+.modal-info{padding:28px}
+.modal-info h2{margin:0 0 8px;font-size:27px}
+.modal-info p{color:var(--muted);line-height:1.6}
+.primary{border:0;border-radius:10px;padding:12px 19px;background:linear-gradient(100deg,#8c5be8,#c27bfa);color:white;font-weight:800;cursor:pointer}
+.secondary{border:1px solid var(--line);border-radius:10px;padding:11px 15px;background:#ffffff08;color:white;cursor:pointer}
+.modal-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:20px}
+#playerView{position:fixed;inset:0;z-index:60;background:#050409;display:none;flex-direction:column}
+#playerView.show{display:flex}
+.player-top{height:65px;display:flex;align-items:center;gap:15px;padding:0 22px;border-bottom:1px solid var(--line)}
+.player-top h2{font-size:15px;margin:0}
+.player-stage{flex:1;display:grid;place-items:center;padding:18px}
+.player-stage iframe,.player-stage video{width:min(1100px,100%);height:min(70vh,680px);border:0;border-radius:12px;background:#000}
+.player-message{max-width:520px;text-align:center;color:var(--muted);line-height:1.7}
+.player-message h3{color:#fff}
+.back{background:#ffffff10;color:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 13px;cursor:pointer}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:90;background:#211a30;border:1px solid #a879ff66;padding:12px 17px;border-radius:10px;color:#fff;transition:.25s;box-shadow:0 10px 35px #0008}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:700px){
+header{height:auto;min-height:68px;flex-wrap:wrap;padding:12px 16px}
+.brand{font-size:21px}
+nav{order:3;width:100%;justify-content:space-between}
+nav button{padding:8px;font-size:12px}
+.category-grid{grid-template-columns:1fr}
+.category-card{height:190px}
+.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.modal-box{grid-template-columns:1fr;max-height:90vh;overflow:auto}
+.modal-poster{height:220px;min-height:0}
+.modal-info{padding:20px}
+.hero{min-height:260px;padding-top:35px}
 }
-if(replacement!==old){edits.push({start:start+m.index,end:start+m.index+old.length,replacement,label});counts[label]=(counts[label]||0)+1;}
+</style>
+</head>
+<body>
+<div id="ambient"></div>
+<div id="cursorGlow"></div>
+<canvas id="particles"></canvas>
+
+<header>
+  <div class="brand" onclick="showView('home')">LUMA</div>
+  <nav>
+    <button class="active" data-view="home" onclick="showView('home')">Home</button>
+    <button data-view="movies" onclick="showView('movies')">Movies</button>
+    <button data-view="shows" onclick="showView('shows')">TV Shows</button>
+    <button data-view="anime" onclick="showView('anime')">Anime</button>
+  </nav>
+  <div class="header-right">
+    <button class="sound" id="soundToggle" onclick="toggleSound()">♫ Sound: Off</button>
+  </div>
+</header>
+
+<main>
+  <section class="view active" id="home">
+    <div class="hero">
+      <span class="eyebrow">A little something to watch</span>
+      <h1>Your next favorite<br><span class="gradient">starts here.</span></h1>
+      <p>Explore your entertainment library in one place. Pick a category and find something to watch.</p>
+    </div>
+
+    <div class="section-head">
+      <div><h2>Explore LUMA</h2><p>Choose your world.</p></div>
+    </div>
+
+    <div class="category-grid">
+      <article class="category-card" onclick="showView('movies')">
+        <img id="homeMoviesPoster" alt="Movies poster">
+        <div class="category-content"><span>Browse the collection</span><h3>Movies <span>↗</span></h3></div>
+      </article>
+      <article class="category-card" onclick="showView('shows')">
+        <img id="homeShowsPoster" alt="TV Shows poster">
+        <div class="category-content"><span>Find your next series</span><h3>TV Shows <span>↗</span></h3></div>
+      </article>
+      <article class="category-card" onclick="showView('anime')">
+        <img id="homeAnimePoster" alt="Anime poster">
+        <div class="category-content"><span>Coming soon</span><h3>Anime <span>↗</span></h3></div>
+      </article>
+    </div>
+
+    <div class="section-head">
+      <div><h2>Continue Watching</h2><p>Pick up where you left off on supported direct-video sources.</p></div>
+    </div>
+    <div class="grid" id="continueGrid"><div class="empty">Your watch progress will appear here.</div></div>
+  </section>
+
+  <section class="view" id="movies">
+    <div class="hero">
+      <span class="eyebrow">The movie collection</span>
+      <h1>Movie <span class="gradient">night.</span></h1>
+      <p>Browse the movie catalog. Add your own poster artwork and authorized playback sources in the LUMA MEDIA SETUP section of this file.</p>
+    </div>
+    <div class="controls">
+      <input class="search" id="movieSearch" placeholder="Search movies..." oninput="renderMovies()">
+      <select class="filter" id="movieGenre" onchange="renderMovies()">
+        <option value="">All genres</option>
+        <option>Action</option>
+        <option>Animation</option>
+        <option>Comedy</option>
+        <option>Drama</option>
+        <option>Family</option>
+        <option>Fantasy</option>
+        <option>Horror</option>
+        <option>Romance</option>
+        <option>Science Fiction</option>
+      </select>
+    </div>
+    <div class="grid" id="movieGrid"></div>
+  </section>
+
+  <section class="view" id="shows">
+    <div class="section-head"><div><h2>TV Shows</h2><p>Your series collection.</p></div></div>
+    <div class="controls">
+      <input class="search" id="showSearch" placeholder="Search TV shows..." oninput="renderShows()">
+      <select class="filter" id="showGenre" onchange="renderShows()">
+        <option value="">All genres</option>
+        <option>Action</option>
+        <option>Adventure</option>
+        <option>Animation</option>
+        <option>Comedy</option>
+        <option>Crime</option>
+        <option>Drama</option>
+        <option>Family</option>
+        <option>Fantasy</option>
+        <option>Mystery</option>
+        <option>Science Fiction</option>
+        <option>Superhero</option>
+        <option>Thriller</option>
+      </select>
+    </div>
+    <div class="grid" id="showGrid"></div>
+  </section>
+
+  <section class="view" id="anime">
+    <div class="coming">
+      <div><h2>COMING SOON</h2><p>Anime is finding its way to LUMA.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Made for your next movie night · Need help or found a bug?
+  <a href="mailto:38386@tiftschools.com">Email us</a>
+</footer>
+
+<div class="modal" id="detailsModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-poster" id="modalPoster"></div>
+    <div class="modal-info">
+      <div class="eyebrow" id="modalCategory"></div>
+      <h2 id="modalTitle"></h2>
+      <div class="meta" id="modalMeta"></div>
+      <p id="modalDescription"></p>
+      <div class="modal-actions">
+        <button class="primary" id="modalPlay">▶ Play</button>
+        <button class="secondary" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="playerView">
+  <div class="player-top">
+    <button class="back" onclick="exitPlayer()">← Back</button>
+    <h2 id="playerTitle"></h2>
+  </div>
+  <div class="player-stage" id="playerStage">
+    <div class="player-message"><h3>Ready when you are</h3><p>Select a title to begin.</p></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+/* =====================================================
+   LUMA MEDIA SETUP
+   ALL HOME PAGE POSTERS, MOVIE POSTERS, TV POSTERS,
+   AND AUTHORIZED VIDEO LINKS GO HERE.
+   ===================================================== */
+
+const homePosters = {
+  movies: "https://thumb.wikimedia.org/wikipedia/en/thumb/0/00/Spider-Man_No_Way_Home_poster.jpg/250px-Spider-Man_No_Way_Home_poster.jpg",
+  shows: "https://thumb.wikimedia.org/wikipedia/en/thumb/4/4f/NinjagoCrystalizedPoster2.jpeg/250px-NinjagoCrystalizedPoster2.jpeg",
+  anime: "https://thumb.wikimedia.org/wikipedia/en/thumb/e/e5/Tokyo_Ghoul_volume_1_cover.jpg/250px-Tokyo_Ghoul_volume_1_cover.jpg"
+};
+
+/* MOVIE POSTERS AND VIDEO LINKS */
+
+const movieMedia = {
+  "Shrek": {poster:"https://upload.wikimedia.org/wikipedia/en/7/7b/Shrek_%282001_animated_feature_film%29.jpg",video:""},
+  "Shrek 2": {poster:"https://upload.wikimedia.org/wikipedia/en/b/b9/Shrek_2_poster.jpg",video:""},
+  "Spider-Man 3": {poster:"https://upload.wikimedia.org/wikipedia/en/7/7a/Spider-Man_3%2C_International_Poster.jpg",video:""},
+  "Saw": {poster:"https://upload.wikimedia.org/wikipedia/en/5/56/Saw_official_poster.jpg",video:""},
+  "Saw II": {poster:"https://upload.wikimedia.org/wikipedia/en/f/f4/Saw_II_poster.jpg",video:""},
+  "Saw III": {poster:"https://upload.wikimedia.org/wikipedia/en/f/f6/Saw3_cape10.jpg",video:""},
+  "Saw IV": {poster:"https://upload.wikimedia.org/wikipedia/en/3/35/Saw4final.jpg",video:""},
+  "Saw V": {poster:"https://upload.wikimedia.org/wikipedia/en/e/ec/Saw_V_New_Poster.jpg",video:""},
+  "Good Burger": {poster:"https://upload.wikimedia.org/wikipedia/en/c/c0/Good_Burger_film_poster.jpg",video:""},
+  "Good Burger 2": {poster:"https://upload.wikimedia.org/wikipedia/en/1/13/Good_Burger_2_Paramount_Plus_Poster.jpg",video:""},
+
+  "Deadpool": {poster:"https://upload.wikimedia.org/wikipedia/en/2/23/Deadpool_%282016_poster%29.png",video:""},
+  "Deadpool 2": {poster:"https://upload.wikimedia.org/wikipedia/en/c/cf/Deadpool_2_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+
+  "Toy Story": {poster:"https://upload.wikimedia.org/wikipedia/en/1/13/Toy_Story.jpg",video:""},
+  "Toy Story 2": {poster:"https://upload.wikimedia.org/wikipedia/en/c/c0/Toy_Story_2.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Toy Story 3": {poster:"https://upload.wikimedia.org/wikipedia/en/6/69/Toy_Story_3_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+
+  "Despicable Me": {poster:"https://upload.wikimedia.org/wikipedia/en/c/c0/Despicable_Me_%282010_animated_feature_film%29.jpg",video:""},
+  "Despicable Me 2": {poster:"https://upload.wikimedia.org/wikipedia/en/2/29/Despicable_Me_2_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Despicable Me 3": {poster:"https://upload.wikimedia.org/wikipedia/en/8/80/Despicable_Me_3_theatrical_release_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+
+  "Minions": {poster:"https://upload.wikimedia.org/wikipedia/en/1/19/Minions_%282015_film%29.jpg",video:""},
+  "Minions: The Rise of Gru": {poster:"https://upload.wikimedia.org/wikipedia/en/4/45/Minions_The_Rise_of_Gru_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+
+  "John Wick": {poster:"https://upload.wikimedia.org/wikipedia/en/9/98/John_Wick_TeaserPoster.jpg",video:""},
+  "John Wick: Chapter 2": {poster:"https://upload.wikimedia.org/wikipedia/en/3/31/John_Wick_Chapter_Two.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "John Wick: Chapter 3 – Parabellum": {poster:"https://upload.wikimedia.org/wikipedia/en/9/94/John_Wick_Chapter_3_Parabellum.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "John Wick: Chapter 4": {poster:"https://upload.wikimedia.org/wikipedia/en/d/d0/John_Wick_-_Chapter_4_promotional_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+
+  "Coat Of Many Colors": {poster:"https://upload.wikimedia.org/wikipedia/en/0/02/Dolly_Parton%27s_Coat_of_Many_Colors_poster.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Circle Of Love": {poster:"https://upload.wikimedia.org/wikipedia/en/3/38/Christmas_of_Many_Colors_titlecard.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Detective Pikachu": {poster:"https://upload.wikimedia.org/wikipedia/en/e/e5/Pok%C3%A9mon_Detective_Pikachu_teaser_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Dune: Part Two": {poster:"https://upload.wikimedia.org/wikipedia/en/5/52/Dune_Part_Two_poster.jpeg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Fast Five": {poster:"https://upload.wikimedia.org/wikipedia/en/0/0c/Fast_Five_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Friday the 13th": {poster:"https://upload.wikimedia.org/wikipedia/en/2/2c/Friday_the_13th_%281980%29_theatrical_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Harry Potter and the Sorcerer's Stone": {poster:"https://upload.wikimedia.org/wikipedia/en/7/7a/Harry_Potter_and_the_Philosopher%27s_Stone_banner.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Harry Potter and the Chamber of Secrets": {poster:"https://upload.wikimedia.org/wikipedia/en/c/c0/Harry_Potter_and_the_Chamber_of_Secrets_movie.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Harry Potter and the Prisoner of Azkaban": {poster:"https://upload.wikimedia.org/wikipedia/en/1/18/Harry_Potter_and_the_Prisoner_of_Azkaban_film_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Harry Potter and the Goblet of Fire": {poster:"https://upload.wikimedia.org/wikipedia/en/c/c9/Harry_Potter_and_the_Goblet_of_Fire_Poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Harry Potter and the Order of the Phoenix": {poster:"https://upload.wikimedia.org/wikipedia/en/e/e7/Harry_Potter_and_the_Order_of_the_Phoenix_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Harry Potter and the Half-Blood Prince": {poster:"https://upload.wikimedia.org/wikipedia/en/3/3f/Harry_Potter_and_the_Half-Blood_Prince_poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Harry Potter and the Deathly Hallows: Part 1": {poster:"https://upload.wikimedia.org/wikipedia/en/2/2d/Harry_Potter_and_the_Deathly_Hallows_%E2%80%93_Part_1.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Harry Potter and the Deathly Hallows: Part 2": {poster:"https://upload.wikimedia.org/wikipedia/en/d/df/Harry_Potter_and_the_Deathly_Hallows_%E2%80%93_Part_2.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "M3GAN": {poster:"https://upload.wikimedia.org/wikipedia/en/0/03/M3GAN_Poster.jpeg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "A Madea Christmas": {poster:"https://upload.wikimedia.org/wikipedia/en/4/46/A_Madea_Christmas.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Boo! A Madea Halloween": {poster:"https://upload.wikimedia.org/wikipedia/en/b/bd/BooMadeaHalloweenPoster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Boo 2! A Madea Halloween": {poster:"https://upload.wikimedia.org/wikipedia/en/e/ef/BooMadea2Poster.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Obsession": {poster:"https://upload.wikimedia.org/wikipedia/en/0/05/Obsession_theatrical_poster.jpeg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Mortal Kombat": {poster:"https://upload.wikimedia.org/wikipedia/en/3/37/Mortal_Kombat_%282021_film%29.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Mean Girls": {poster:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRgbjtg_EtFEK89VttC4Zu4y4asqjtIb02DGiu1kJtwMCFvH289",video:""},
+  "Major Payne": {poster:"https://upload.wikimedia.org/wikipedia/en/8/85/Major_Payne.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Monsters, Inc.": {poster:"https://upload.wikimedia.org/wikipedia/en/6/63/Monsters_Inc.JPG?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "The Matrix": {poster:"https://upload.wikimedia.org/wikipedia/en/d/db/The_Matrix.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Mufasa: The Lion King": {poster:"https://upload.wikimedia.org/wikipedia/en/0/0b/Mufasa_The_Lion_King_Movie_2024.jpeg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",video:""},
+  "Mulan": {poster:"",video:""},
+  "A Minecraft Movie": {poster:"",video:""},
+  "Norbit": {poster:"",video:""},
+  "Once Upon a Deadpool": {poster:"",video:""},
+  "Pacific Rim": {poster:"",video:""},
+  "Pacific Rim Uprising": {poster:"",video:""},
+  "Power Rangers: The Movie": {poster:"",video:""},
+  "The Peanuts Movie": {poster:"",video:""},
+  "The Polar Express": {poster:"",video:""},
+  "PAW Patrol: The Mighty Movie": {poster:"",video:""},
+  "Power Rangers": {poster:"",video:""},
+  "Piece by Piece": {poster:"",video:""},
+  "Rise of the Planet of the Apes": {poster:"",video:""},
+  "Rio": {poster:"",video:""},
+  "Rio 2": {poster:"",video:""},
+  "Real Steel": {poster:"",video:""},
+  "Ron's Gone Wrong": {poster:"",video:""},
+  "Rambo III": {poster:"",video:""},
+  "The Rugrats Movie": {poster:"",video:""},
+  "Rugrats in Paris: The Movie": {poster:"",video:""},
+  "Robin Hood": {poster:"",video:""},
+  "Rudolph the Red-Nosed Reindeer": {poster:"",video:""},
+  "Romeo + Juliet": {poster:"",video:""},
+  "The Road to El Dorado": {poster:"",video:""},
+  "Rush Hour": {poster:"",video:""},
+  "Rush Hour 2": {poster:"",video:""},
+  "Saw VI": {poster:"",video:""},
+  "Saw VII": {poster:"",video:""},
+  "Scream": {poster:"",video:""},
+  "Scream 2": {poster:"",video:""},
+  "Scream 3": {poster:"",video:""},
+  "Scream 4": {poster:"",video:""},
+  "Scream (2022)": {poster:"",video:""},
+  "Scream VI": {poster:"",video:""},
+  "Shark Tale": {poster:"",video:""},
+  "Space Jam: A New Legacy": {poster:"",video:""},
+  "Sonic the Hedgehog 3": {poster:"",video:""},
+  "Spider-Man: Homecoming": {poster:"",video:""},
+  "Spider-Man: Far From Home": {poster:"",video:""},
+  "Spider-Man: Across the Spider-Verse": {poster:"",video:""},
+  "Spider-Man": {poster:"",video:""},
+  "Spider-Man 2": {poster:"",video:""},
+  "The Amazing Spider-Man": {poster:"",video:""},
+  "Suicide Squad": {poster:"",video:""},
+  "The Suicide Squad": {poster:"",video:""},
+  "Strays": {poster:"",video:""},
+  "Sing 2": {poster:"",video:""},
+  "Snitch": {poster:"",video:""},
+  "Shrek the Third": {poster:"",video:""},
+  "Shrek Forever After": {poster:"",video:""},
+  "Scary Movie": {poster:"",video:""},
+  "Scary Movie 2": {poster:"",video:""},
+  "Scary Movie 3": {poster:"",video:""},
+  "Scary Movie 4": {poster:"",video:""},
+  "Scary Movie 5": {poster:"",video:""},
+  "Sleepy Hollow": {poster:"",video:""},
+  "Smile": {poster:"",video:""},
+  "Smile 2": {poster:"",video:""},
+  "The Lion King": {poster:"",video:""},
+  "The Lion King II: Simba's Pride": {poster:"",video:""},
+  "The Lego Batman Movie": {poster:"",video:""},
+  "The Lego Movie 2: The Second Part": {poster:"",video:""},
+  "The Little Rascals": {poster:"",video:""},
+  "The Sandlot": {poster:"",video:""},
+  "The Brave Little Toaster": {poster:"",video:""},
+  "The Chronicles of Narnia": {poster:"",video:""},
+  "The Chronicles of Narnia: Prince Caspian": {poster:"",video:""},
+  "The Chronicles of Narnia: The Voyage of the Dawn Treader": {poster:"",video:""},
+  "The Proud Family Movie": {poster:"",video:""},
+  "The Lego Ninjago Movie": {poster:"",video:""},
+  "Teen Titans: The Judas Contract": {poster:"",video:""},
+  "Teen Titans: Trouble in Tokyo": {poster:"",video:""},
+  "Transformers": {poster:"",video:""},
+  "Transformers: Revenge of the Fallen": {poster:"",video:""},
+  "Transformers: Dark of the Moon": {poster:"",video:""},
+  "Transformers: Age of Extinction": {poster:"",video:""},
+  "Transformers: The Last Knight": {poster:"",video:""},
+  "Bumblebee": {poster:"",video:""},
+  "Teenage Mutant Ninja Turtles": {poster:"",video:""},
+  "Teenage Mutant Ninja Turtles II: The Secret of the Ooze": {poster:"",video:""},
+  "Teenage Mutant Ninja Turtles III": {poster:"",video:""},
+  "Turning Red": {poster:"",video:""},
+  "Teenage Mutant Ninja Turtles: Out of the Shadows": {poster:"",video:""},
+  "TMNT": {poster:"",video:""},
+  "The Good Dinosaur": {poster:"",video:""},
+  "The Little Mermaid": {poster:"",video:""},
+  "The Brady Bunch Movie": {poster:"",video:""},
+  "A Very Brady Sequel": {poster:"",video:""},
+  "The Addams Family": {poster:"",video:""},
+  "The Little Mermaid (2023)": {poster:"",video:""},
+  "The Smurfs": {poster:"",video:""},
+  "The Smurfs 2": {poster:"",video:""},
+  "The Flash": {poster:"",video:""},
+  "The Book of Life": {poster:"",video:""},
+  "Twilight": {poster:"",video:""},
+  "The Twilight Saga: New Moon": {poster:"",video:""},
+  "The Twilight Saga: Eclipse": {poster:"",video:""},
+  "The Twilight Saga: Breaking Dawn – Part 1": {poster:"",video:""},
+  "The Twilight Saga: Breaking Dawn – Part 2": {poster:"",video:""},
+  "The House with a Clock in Its Walls": {poster:"",video:""},
+  "The Menu": {poster:"",video:""},
+  "The Swan Princess": {poster:"",video:""},
+  "The Princess and the Frog": {poster:"",video:""},
+  "Trolls Band Together": {poster:"",video:""},
+  "The Santa Clause": {poster:"",video:""},
+  "The Santa Clause 2": {poster:"",video:""},
+  "The Santa Clause 3: The Escape Clause": {poster:"",video:""},
+  "The Greatest Showman": {poster:"",video:""},
+  "Terrifier 3": {poster:"",video:""},
+  "Tangled": {poster:"",video:""},
+  "The Wild Robot": {poster:"",video:""},
+  "Us": {poster:"",video:""},
+  "Venom": {poster:"",video:""},
+  "Venom: Let There Be Carnage": {poster:"",video:""},
+  "Venom: The Last Dance": {poster:"",video:""},
+  "White Chicks": {poster:"",video:""},
+  "Wicked": {poster:"",video:""},
+  "White Water": {poster:"",video:""},
+  "Who Framed Roger Rabbit": {poster:"",video:""},
+  "Wreck-It Ralph": {poster:"",video:""},
+  "Ralph Breaks the Internet": {poster:"",video:""},
+  "White Men Can't Jump (1992)": {poster:"",video:""},
+  "White Men Can't Jump (2023)": {poster:"",video:""},
+  "Wish": {poster:"",video:""},
+  "West Side Story (1961)": {poster:"",video:""},
+  "West Side Story (2021)": {poster:"",video:""},
+  "Willy Wonka & the Chocolate Factory": {poster:"",video:""},
+  "X-Men": {poster:"",video:""},
+  "X2: X-Men United": {poster:"",video:""},
+  "X-Men: The Last Stand": {poster:"",video:""},
+  "Zapped": {poster:"",video:""}
+};
+
+/* TV SHOW POSTERS AND VIDEO LINKS */
+
+const tvMedia = {
+  "Abbott Elementary": {poster:"",video:""},
+  "Adventure Time": {poster:"",video:""},
+  "Adventure Time: Fiona and Cake": {poster:"",video:""},
+  "Arcane": {poster:"",video:""},
+  "The Amazing World of Gumball": {poster:"",video:""},
+  "Barbie: Life in the Dreamhouse": {poster:"",video:""},
+  "Batman: The Animated Series": {poster:"",video:""},
+  "Batman Beyond": {poster:"",video:""},
+  "Blue's Clues": {poster:"",video:""},
+  "Bluey": {poster:"",video:""},
+  "The Boondocks": {poster:"",video:""},
+  "The Cuphead Show!": {poster:"",video:""},
+  "The Cleveland Show": {poster:"",video:""},
+  "The Chi": {poster:"",video:""},
+  "Cobra Kai": {poster:"",video:""},
+  "Danny Phantom": {poster:"",video:""},
+  "Everybody Hates Chris": {poster:"",video:""},
+  "Euphoria": {poster:"",video:""},
+  "Family Matters": {poster:"",video:""},
+  "Gravity Falls": {poster:"",video:""},
+  "The Good Doctor": {poster:"",video:""},
+  "Harley Quinn": {poster:"",video:""},
+  "Harvey Birdman, Attorney at Law": {poster:"",video:""},
+  "Hey Arnold!": {poster:"",video:""},
+  "Invincible": {poster:"",video:""},
+  "K.C. Undercover": {poster:"",video:""},
+  "Kim Possible": {poster:"",video:""},
+  "Lab Rats": {poster:"",video:""},
+  "My Adventures with Superman": {poster:"",video:""},
+  "Moon Knight": {poster:"",video:""},
+  "The Proud Family": {poster:"",video:""},
+  "The Powerpuff Girls": {poster:"",video:""},
+  "The PJs": {poster:"",video:""},
+  "Recess": {poster:"",video:""},
+  "Rick and Morty": {poster:"",video:""},
+  "Spider-Man": {poster:"",video:""},
+  "Steven Universe": {poster:"",video:""},
+  "Static Shock": {poster:"",video:""},
+  "SpongeBob SquarePants": {poster:"",video:""},
+  "Squid Game": {poster:"",video:""},
+  "Steven Universe Future": {poster:"",video:""},
+  "Sonic X": {poster:"",video:""},
+  "The Simpsons": {poster:"",video:""},
+  "South Park": {poster:"",video:""},
+  "Teen Titans": {poster:"",video:""},
+  "Teenage Mutant Ninja Turtles": {poster:"",video:""},
+  "The Summer I Turned Pretty": {poster:"",video:""},
+  "The Last of Us": {poster:"",video:""},
+  "X-Men": {poster:"",video:""},
+  "Ninjago": {poster:"",video:""}
+};
+
+/* ADDED POSTERS — fills empty poster slots only (video links untouched) */
+
+const W = "https://upload.wikimedia.org/wikipedia/en/";
+const G = "https://encrypted-tbn";
+
+const moviePosterFill = {
+  "Mulan": G+"2.gstatic.com/images?q=tbn:ANd9GcRTp9CxshAq-rdiP3GQLuYN-xrDh9RMiW7ubZIvf4z79VOEdlpR",
+  "Moana": G+"1.gstatic.com/images?q=tbn:ANd9GcTq7M1d9ljrLzBxmn-vxceGdGGgoD8vg6ITrscZYUrHPANgz7-E",
+  "Norbit": W+"6/60/Norbit_%282007_film%29_poster.jpg",
+  "The Polar Express": W+"2/24/The_Polar_Express_%282004%29_poster.jpg",
+  "Rio": G+"3.gstatic.com/images?q=tbn:ANd9GcRNwt48_T7xAOZ2RiDpF-ALaS1uCiUhvUlzGG7gCCcLY7YNCCn8",
+  "Rio 2": G+"0.gstatic.com/images?q=tbn:ANd9GcSVzgpmxZOMe7dBUXw6F8EfNIxXiWxZcdc_m0vAJ2vAWYmFdKhW",
+  "Real Steel": G+"0.gstatic.com/images?q=tbn:ANd9GcQB-CEqDyKq4ZlSvDj8w79lfBDZ0OQRO574m4djlt5RxkH9gd1e",
+  "Ron's Gone Wrong": G+"0.gstatic.com/images?q=tbn:ANd9GcRB6qRbfbRP_khKgg-MqS6n4GyNceZ55VC4fnj_ABsU-dQ_Xqj_",
+  "Rush Hour": G+"0.gstatic.com/images?q=tbn:ANd9GcQoqWyMA-oJ1QcTyS_7Uj461RDVzXpWOIswGRsrg4jQTKY-BWTh",
+  "Rush Hour 2": G+"0.gstatic.com/images?q=tbn:ANd9GcRV3GU_IDg_CWuOPL7VjJ7wZfLiks4euuhSXaVx7xa3qTd2uSJC",
+  "Sonic the Hedgehog 3": G+"0.gstatic.com/images?q=tbn:ANd9GcRtY4G-bEf6Dn6wEXTPzj4Pvp8KFInSH1O6nOCZjSMun-mjrslUxt_vpvCbABZiXxEmW8mc4g&s=10",
+  "The Lion King": W+"3/3d/The_Lion_King_poster.jpg",
+  "The Lion King II: Simba's Pride": W+"9/9b/The_Lion_King_II-Simba%27s_Pride_poster.jpg",
+  "The Lego Batman Movie": W+"6/61/The_Lego_Batman_Movie_PromotionalPoster.jpg",
+  "The Lego Movie 2: The Second Part": W+"f/fd/The_Lego_Movie_2_The_Second_Part_theatrical_poster.jpg",
+  "The Lego Ninjago Movie": G+"0.gstatic.com/images?q=tbn:ANd9GcQP2u3b-WhQKWHR9cGr2Rq5A4oKRxEr3T1APfo_-IZ9pdGZD1PlqYVsp4tmzR7mlGudlx8Z4A&s=10",
+  "The Sandlot": G+"0.gstatic.com/images?q=tbn:ANd9GcSzougOn6tFo8I-SWums1Mukqf6ng75gAe2-DXloetemR2GLKnmnGGwYKsXLrqUiuCjRumm&s=10",
+  "Turning Red": W+"9/9e/Turning_Red_poster.jpg",
+  "The Good Dinosaur": W+"8/80/The_Good_Dinosaur_poster.jpg",
+  "The Little Mermaid": W+"c/c0/The_Little_Mermaid_%28Official_1989_Film_Poster%29.png",
+  "The Flash": W+"e/ed/The_Flash_%28film%29_poster.jpg",
+  "Venom": W+"1/10/Venom_%282018_film%29_poster.png",
+  "Venom: Let There Be Carnage": W+"a/a7/Venom_Let_There_Be_Carnage_poster.jpg",
+  "Venom: The Last Dance": W+"a/a3/Venom_The_Last_Dance_Poster.jpg",
+  "Wreck-It Ralph": W+"1/15/Wreckitralphposter.jpeg",
+  "Ralph Breaks the Internet": W+"0/0b/Ralph_Breaks_the_Internet_%282018_film_poster%29.png",
+  "Wish": W+"d/de/WishMoviePoster.jpg",
+  "X-Men": W+"8/81/X-MenfilmPoster.jpg",
+  "X2: X-Men United": W+"3/3e/X2_poster.jpg",
+  "X-Men: The Last Stand": W+"5/5b/X-Men_The_Last_Stand_theatrical_poster.jpg",
+  "Terrifier 3": W+"5/51/Terrifier_3_poster.jpg"
+};
+
+const tvPosterFill = {
+  "Invincible": G+"1.gstatic.com/images?q=tbn:ANd9GcRlh5rtk4GM_3RGhS2OEPEE470mV8QXa0eG-V2cKiacGoixPc3z",
+  "Rick and Morty": G+"0.gstatic.com/images?q=tbn:ANd9GcThuRqZiVupolXRXJhu4sYxAl-XzNaMS_Lr0TQfEzFGoy1mjXwg",
+  "Gravity Falls": G+"1.gstatic.com/images?q=tbn:ANd9GcQ-v_Xo2iDD3CyndUlcB_4rENheUr27aBx293fJIfVRNBgAvrgO",
+  "SpongeBob SquarePants": G+"2.gstatic.com/images?q=tbn:ANd9GcQ5Fs8tpg29mQcDhXJi_RMZsy2InmOJ5WO9XrOxreAnzC8ftuzl",
+  "Adventure Time": G+"0.gstatic.com/images?q=tbn:ANd9GcQQTbXtbaEURRlpx4bdbAN5Y9qWLzkresoCd3GRUfhJKX85FHMP",
+  "The Simpsons": G+"1.gstatic.com/images?q=tbn:ANd9GcSjBQ3mYHfXn9D5mOd5NIvOVtJtndaat3TYzgugN1q0RBhDS4X1",
+  "Squid Game": G+"3.gstatic.com/images?q=tbn:ANd9GcRYrCcld4s3_n4XOAlYV3VkSBIK2ftLFZIVRfbbH5p4MhJntDrh",
+  "Abbott Elementary": G+"0.gstatic.com/images?q=tbn:ANd9GcS-Mex9Ueh1gyFzynyDGM89njsJA-frvhvqdvqLEI93bl0xOKS1",
+  "The Cuphead Show!": G+"0.gstatic.com/images?q=tbn:ANd9GcRpmLjRdIKi4Ygo-T4nDC9ju-nF9wSJvXHE_JHMk9yI_y-mP23B",
+  "Cobra Kai": G+"2.gstatic.com/images?q=tbn:ANd9GcTyjnchImx4HHVrOVzoUgo9QBxy-YavFc_9o5qtMV-9LdgC1Iz7",
+  "Everybody Hates Chris": G+"0.gstatic.com/images?q=tbn:ANd9GcTDBDcsw32nPBrh5GoiGm_TNo7S8o7AOhACUdADDfFY5fbXd6UQ",
+  "Ninjago": W+"d/d9/Masters_of_Spinjitzu_Pilot_Season_DVD_cover_art.jpg",
+  "Steven Universe": G+"3.gstatic.com/images?q=tbn:ANd9GcTwCgt-OdKYt_XHLV7hf5-_a1BLKPJyX94sZDoTrv5xPpRJJHuA",
+  "The Last of Us": G+"3.gstatic.com/images?q=tbn:ANd9GcSm6oVhnKDiwQi22bLIDhYLh_b3TaSPfjGnG0PH9fu_rUpZw7gK",
+  "The Boondocks": G+"1.gstatic.com/images?q=tbn:ANd9GcR_uYa8c5zcoBdzYCk1x-Wo01KpOH90eozgTTNOhUTppNvXNCdW",
+  "South Park": G+"0.gstatic.com/images?q=tbn:ANd9GcTgq_Te6aqRuwGuvtChu1fRgpuMf7OkgBihWHEMZTJLVpQ2zSVT"
+};
+
+function fillPosters(media, fill){
+  for(const [title, url] of Object.entries(fill)){
+    if(!media[title]) media[title] = {poster:"", video:""};
+    if(!media[title].poster) media[title].poster = url;
+  }
 }
-await new Promise(r=>setTimeout(r,0));
+fillPosters(movieMedia, moviePosterFill);
+fillPosters(tvMedia, tvPosterFill);
+
+/* ORIGINAL MOVIE CATALOG — PRESERVED, WITH SERIES SPLIT INTO INDIVIDUAL MOVIES */
+
+const movieTitles = [
+  "Shrek","Shrek 2","Spider-Man 3","Saw","Saw II","Saw III","Saw IV","Saw V",
+  "Good Burger","Good Burger 2","Deadpool","Deadpool 2",
+  "Toy Story","Toy Story 2","Toy Story 3",
+  "Despicable Me","Despicable Me 2","Despicable Me 3",
+  "Minions","Minions: The Rise of Gru",
+  "John Wick","John Wick: Chapter 2","John Wick: Chapter 3 – Parabellum","John Wick: Chapter 4",
+  "Coat Of Many Colors","Circle Of Love","Detective Pikachu","Dune: Part Two","Fast Five","Friday the 13th",
+  "Harry Potter and the Sorcerer's Stone",
+  "Harry Potter and the Chamber of Secrets",
+  "Harry Potter and the Prisoner of Azkaban",
+  "Harry Potter and the Goblet of Fire",
+  "Harry Potter and the Order of the Phoenix",
+  "Harry Potter and the Half-Blood Prince",
+  "Harry Potter and the Deathly Hallows: Part 1",
+  "Harry Potter and the Deathly Hallows: Part 2",
+  "M3GAN","A Madea Christmas","Boo! A Madea Halloween","Boo 2! A Madea Halloween",
+  "Obsession","Mortal Kombat","Mean Girls","Major Payne","Monsters, Inc.","The Matrix",
+  "Moana","Mufasa: The Lion King","Mulan","A Minecraft Movie","Norbit","Once Upon a Deadpool",
+  "Pacific Rim","Pacific Rim Uprising","Power Rangers: The Movie","The Peanuts Movie","The Polar Express",
+  "PAW Patrol: The Mighty Movie","Power Rangers","Piece by Piece","Rise of the Planet of the Apes",
+  "Rio","Rio 2","Real Steel","Ron's Gone Wrong","Rambo III","The Rugrats Movie",
+  "Rugrats in Paris: The Movie","Robin Hood","Rudolph the Red-Nosed Reindeer","Romeo + Juliet",
+  "The Road to El Dorado","Rush Hour","Rush Hour 2","Saw VI","Saw VII",
+  "Scream","Scream 2","Scream 3","Scream 4","Scream (2022)","Scream VI",
+  "Shark Tale","Space Jam: A New Legacy","Sonic the Hedgehog 3",
+  "Spider-Man: Homecoming","Spider-Man: Far From Home","Spider-Man: Across the Spider-Verse",
+  "Spider-Man","Spider-Man 2","The Amazing Spider-Man",
+  "Suicide Squad","The Suicide Squad","Strays","Sing 2","Snitch",
+  "Shrek the Third","Shrek Forever After",
+  "Scary Movie","Scary Movie 2","Scary Movie 3","Scary Movie 4","Scary Movie 5",
+  "Sleepy Hollow","Smile","Smile 2",
+  "The Lion King","The Lion King II: Simba's Pride","The Lego Batman Movie",
+  "The Lego Movie 2: The Second Part","The Little Rascals","The Sandlot","The Brave Little Toaster",
+  "The Chronicles of Narnia","The Chronicles of Narnia: Prince Caspian",
+  "The Chronicles of Narnia: The Voyage of the Dawn Treader",
+  "The Proud Family Movie","The Lego Ninjago Movie",
+  "Teen Titans: The Judas Contract","Teen Titans: Trouble in Tokyo",
+  "Transformers","Transformers: Revenge of the Fallen","Transformers: Dark of the Moon",
+  "Transformers: Age of Extinction","Transformers: The Last Knight","Bumblebee",
+  "Teenage Mutant Ninja Turtles","Teenage Mutant Ninja Turtles II: The Secret of the Ooze",
+  "Teenage Mutant Ninja Turtles III","Turning Red","Teenage Mutant Ninja Turtles: Out of the Shadows","TMNT",
+  "The Good Dinosaur","The Little Mermaid","The Brady Bunch Movie","A Very Brady Sequel",
+  "The Addams Family","The Little Mermaid (2023)","The Smurfs","The Smurfs 2","The Flash","The Book of Life",
+  "Twilight","The Twilight Saga: New Moon","The Twilight Saga: Eclipse",
+  "The Twilight Saga: Breaking Dawn – Part 1","The Twilight Saga: Breaking Dawn – Part 2",
+  "The House with a Clock in Its Walls","The Menu","The Swan Princess","The Princess and the Frog",
+  "Trolls Band Together","The Santa Clause","The Santa Clause 2","The Santa Clause 3: The Escape Clause",
+  "The Greatest Showman","Terrifier 3","Tangled","The Wild Robot","Us",
+  "Venom","Venom: Let There Be Carnage","Venom: The Last Dance",
+  "White Chicks","Wicked","White Water","Who Framed Roger Rabbit",
+  "Wreck-It Ralph","Ralph Breaks the Internet",
+  "White Men Can't Jump (1992)","White Men Can't Jump (2023)","Wish",
+  "West Side Story (1961)","West Side Story (2021)","Willy Wonka & the Chocolate Factory",
+  "X-Men","X2: X-Men United","X-Men: The Last Stand","Zapped"
+];
+
+/* ORIGINAL GENRE CLASSIFIER — PRESERVED */
+
+function classifyMovie(title){
+  const t=title.toLowerCase();
+  const has=(...words)=>words.some(w=>t.includes(w));
+
+  if(has("saw","terrifier","nightmare on elm","friday the 13th","jason x","jason goes","five nights at freddy","paranormal activity","the conjuring","the nun","exorcist","scream","halloween","get out","coraline","goosebumps","cocaine bear","m3gan","it chapter","smile","sleepy hollow","scary movie","beetlejuice","american psycho","us","menu","zombieland","twilight")) return "Horror";
+
+  if(has("spider-man: into the spider-verse","spider-man: across the spider-verse","toy story","despicable me","inside out","lego movie","garfield","ratatouille","minions","puss in boots","simpsons movie","flushed away","sing","goofy movie","barnyard","beavis","kung fu panda","lorax","trolls","zootopia","sandy cheeks","dog man","finding nemo","frozen","hotel transylvania","how to train your dragon","incredibles","madagascar","megamind","monsters, inc","moana","mufasa","rio","ron's gone wrong","rugrats","road to el dorado","shark tale","lion king","brave little toaster","proud family","turning red","good dinosaur","book of life","swan princess","tangled","wild robot","wreck-it ralph","ralph breaks","wish","peanuts movie","polar express","paw patrol","nightmare before christmas","ice age","captain underpants","minecraft movie","teen titans go!","teen titans: trouble","tmnt")) return "Animation";
+
+  if(has("john wick","fast & furious","fast five","fast x","furious","hobbs & shaw","top gun","creed","rambo","rush hour","kill bill","mortal kombat","karate kid","indiana jones","transformers","pacific rim","power rangers","ninja turtles","teenage mutant","avengers","captain america","iron man","guardians of the galaxy","deadpool","x-men","suicide squad","shazam","ghost rider","venom","the flash","snitch","jackass","scott pilgrim","dungeons & dragons","hunger games","matrix","men in black","godzilla","real steel","meg 2","jumanji","sonic","detective pikachu","rise of the planet","space jam","the goonies","major payne")) return "Action";
+
+  if(has("dune","matrix","pixels","men in black","godzilla","pacific rim","meg 2","real steel","rise of the planet","sonic","the flash","transformers one","a minecraft movie","guardians of the galaxy","star")) return "Science Fiction";
+
+  if(has("harry potter","narnia","maleficent","dungeons & dragons","wonka","wicked","hocus","house with a clock","the mask","beetlejuice","jumanji","puss in boots","hunger games","the book of life","the princess and the frog","robin hood","the little mermaid","the smurfs","the addams family","mulan","hercules","moana","mufasa","tangled","swan princess","the santa clause","polar express","rudy","rudolph","willy wonka","elf","grinch","descendants","zapped")) return "Fantasy";
+
+  if(has("ted (","step brothers","borat","good burger","harold & kumar","sausage party","norbit","madea","mean girls","white chicks","white men can't jump","friday","home alone","brady bunch","very brady","little rascals","scary movie","rush hour","mask","strays","elf","jingle all the way","beavis","jackass","space jam","diary of a wimpy kid","high school musical","hairspray","grease","head over heels","once upon a deadpool","a goofy movie","an extremely goofy","shrek","santa clause","santa clause 2","santa clause 3")) return "Comedy";
+
+  if(has("romeo + juliet","west side story","twilight","head over heels","circle of love","grease","hairspray","high school musical")) return "Romance";
+
+  if(has("coat of many colors","sound of freedom","shawshank","scarface","full metal jacket","django","straight outta compton","hidden figures","napoleon","great gatsby","hamilton","8 mile","joker","american psycho","piece by piece","white water","white men can't jump","the menu","circle of love")) return "Drama";
+
+  if(has("toy story","finding nemo","moana","frozen","lion king","santa clause","polar express","elf","grinch","mighty ducks","mulan","garfield","peanuts","sandlot","little mermaid","smurfs","home","home alone","incredibles","how to train your dragon","paw patrol","trolls","zootopia","lego","despicable me","minions","sonic","mario","dog man","good dinosaur","wild robot","rio","madagascar","kung fu panda","monsters, inc","if","the good dinosaur")) return "Family";
+
+  return "Drama";
 }
-if(!counts['tab titles']||!counts['plain-text branding'])throw Error('Expected branding was not found. No output created.');
-const parts=[];let cursor=0;
-for(const edit of edits){if(edit.start<cursor)throw Error('Overlapping changes detected. No output created.');parts.push(f.slice(cursor,edit.start),edit.replacement);cursor=edit.end;}
-parts.push(f.slice(cursor));
-const blob=new Blob(parts,{type:'text/html;charset=utf-8'});
-const audit={originalName:f.name,originalBytes:f.size,outputBytes:blob.size,counts,changes:edits,limitations:['Encoded game payload not modified or tested','Cloudflare deployment and complete game startup not tested','External Deepslate image requires network access','Original service URLs and internal identifiers intentionally retained']};
-function link(blob,name,label){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.textContent=label;const p=document.createElement('p');p.appendChild(a);document.getElementById('links').appendChild(p);}
-link(blob,f.name,'Save modified Chromium-Client-vanilla.html');
-link(new Blob([JSON.stringify(audit,null,2)],{type:'application/json'}),'deepslate-patch-audit.json','Save patch audit');
-document.getElementById('log').textContent=JSON.stringify(counts,null,2);
-status.textContent='Modified copy ready. Save it in a separate folder first. The original file slices outside the listed edits are reused unchanged. Test through your existing launcher before replacing the hosted copy.';
-}catch(e){status.textContent='Stopped: '+e.message;}finally{go.disabled=false;}
-};</script></html>
+
+/* MOVIES ARE BUILT FROM THE ORIGINAL LIST */
+
+const movieSlots = movieTitles.map((title,i)=>({
+  id:"movie-"+(i+1),
+  title,
+  category:"Movie",
+  genre:classifyMovie(title),
+  year:"",
+  description:"",
+  poster:movieMedia[title]?.poster || "",
+  video:movieMedia[title]?.video || "",
+  type:movieMedia[title]?.type || "embed"
+}));
+
+/* ORIGINAL TV SHOW LIST — PRESERVED */
+
+const tvShows = [
+  {title:"Abbott Elementary",genre:"Comedy"},
+  {title:"Adventure Time",genre:"Animation"},
+  {title:"Adventure Time: Fiona and Cake",genre:"Animation"},
+  {title:"Arcane",genre:"Animation"},
+  {title:"The Amazing World of Gumball",genre:"Animation"},
+  {title:"Barbie: Life in the Dreamhouse",genre:"Animation"},
+  {title:"Batman: The Animated Series",genre:"Animation"},
+  {title:"Batman Beyond",genre:"Animation"},
+  {title:"Blue's Clues",genre:"Family"},
+  {title:"Bluey",genre:"Animation"},
+  {title:"The Boondocks",genre:"Animation"},
+  {title:"The Cuphead Show!",genre:"Animation"},
+  {title:"The Cleveland Show",genre:"Animation"},
+  {title:"The Chi",genre:"Drama"},
+  {title:"Cobra Kai",genre:"Action"},
+  {title:"Danny Phantom",genre:"Animation"},
+  {title:"Everybody Hates Chris",genre:"Comedy"},
+  {title:"Euphoria",genre:"Drama"},
+  {title:"Family Matters",genre:"Comedy"},
+  {title:"Gravity Falls",genre:"Animation"},
+  {title:"The Good Doctor",genre:"Drama"},
+  {title:"Harley Quinn",genre:"Animation"},
+  {title:"Harvey Birdman, Attorney at Law",genre:"Animation"},
+  {title:"Hey Arnold!",genre:"Animation"},
+  {title:"Invincible",genre:"Animation"},
+  {title:"K.C. Undercover",genre:"Comedy"},
+  {title:"Kim Possible",genre:"Animation"},
+  {title:"Lab Rats",genre:"Science Fiction"},
+  {title:"My Adventures with Superman",genre:"Animation"},
+  {title:"Moon Knight",genre:"Superhero"},
+  {title:"The Proud Family",genre:"Animation"},
+  {title:"The Powerpuff Girls",genre:"Animation"},
+  {title:"The PJs",genre:"Animation"},
+  {title:"Recess",genre:"Animation"},
+  {title:"Rick and Morty",genre:"Animation"},
+  {title:"Spider-Man",genre:"Animation"},
+  {title:"Steven Universe",genre:"Animation"},
+  {title:"Static Shock",genre:"Animation"},
+  {title:"SpongeBob SquarePants",genre:"Animation"},
+  {title:"Squid Game",genre:"Thriller"},
+  {title:"Steven Universe Future",genre:"Animation"},
+  {title:"Sonic X",genre:"Animation"},
+  {title:"The Simpsons",genre:"Animation"},
+  {title:"South Park",genre:"Animation"},
+  {title:"Teen Titans",genre:"Animation"},
+  {title:"Teenage Mutant Ninja Turtles",genre:"Animation"},
+  {title:"The Summer I Turned Pretty",genre:"Drama"},
+  {title:"The Last of Us",genre:"Drama"},
+  {title:"X-Men",genre:"Animation"},
+  {title:"Ninjago",genre:"Animation"}
+];
+
+const tvSlots = tvShows.map((show,i)=>({
+  id:"show-"+(i+1),
+  title:show.title,
+  category:"TV Show",
+  genre:show.genre,
+  year:"",
+  description:"",
+  poster:tvMedia[show.title]?.poster || "",
+  video:tvMedia[show.title]?.video || "",
+  type:tvMedia[show.title]?.type || "embed"
+}));
+
+let currentItem=null;
+let soundOn=false;
+let audioContext=null;
+const $=id=>document.getElementById(id);
+
+/* CONNECT HOME PAGE POSTERS */
+
+$("homeMoviesPoster").src=homePosters.movies;
+$("homeShowsPoster").src=homePosters.shows;
+$("homeAnimePoster").src=homePosters.anime;
+
+function showView(id){
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===id));
+  closeModal();
+  window.scrollTo({top:0,behavior:"smooth"});
+  playTone(440,.045);
+}
+
+function toast(message){
+  const el=$("toast");
+  el.textContent=message;
+  el.classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer=setTimeout(()=>el.classList.remove("show"),2800);
+}
+
+function playTone(freq=520,duration=.06){
+  if(!soundOn)return;
+  try{
+    audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();
+    const o=audioContext.createOscillator();
+    const g=audioContext.createGain();
+    o.frequency.value=freq;
+    o.type="sine";
+    g.gain.setValueAtTime(.035,audioContext.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime+duration);
+    o.connect(g);
+    g.connect(audioContext.destination);
+    o.start();
+    o.stop(audioContext.currentTime+duration);
+  }catch(e){}
+}
+
+function toggleSound(){
+  soundOn=!soundOn;
+  $("soundToggle").textContent="♫ Sound: "+(soundOn?"On":"Off");
+  if(soundOn)playTone(660,.1);
+}
+
+function posterMarkup(item){
+  return item.poster
+    ? `<img loading="lazy" src="${escapeAttr(item.poster)}" alt="${escapeAttr(item.title)} poster" onerror="this.remove()">`
+    : `<div class="poster-placeholder">${escapeHTML(item.title||"Poster coming soon")}</div>`;
+}
+
+function cardMarkup(item){
+  return `<article class="movie-card" onclick="openDetails('${item.id}')">
+    <div class="poster">${posterMarkup(item)}</div>
+    <h3>${escapeHTML(item.title)}</h3>
+    <p class="meta">${escapeHTML(item.year||item.genre||item.category)}</p>
+  </article>`;
+}
+
+function renderMovies(){
+  const q=$("movieSearch").value.toLowerCase();
+  const g=$("movieGenre").value;
+  const items=movieSlots.filter(x=>x.title&&x.title.toLowerCase().includes(q)&&(!g||x.genre===g));
+  $("movieGrid").innerHTML=items.length
+    ? items.map(cardMarkup).join("")
+    : '<div class="empty">No titles match your search.</div>';
+}
+
+function renderShows(){
+  const q=$("showSearch").value.toLowerCase();
+  const g=$("showGenre").value;
+  const items=tvSlots.filter(x=>x.title&&x.title.toLowerCase().includes(q)&&(!g||x.genre===g));
+  $("showGrid").innerHTML=items.length
+    ? items.map(cardMarkup).join("")
+    : '<div class="empty">No TV shows match your search.</div>';
+}
+
+function findItem(id){
+  return [...movieSlots,...tvSlots].find(x=>x.id===id);
+}
+
+function openDetails(id){
+  const item=findItem(id);
+  if(!item)return;
+  currentItem=item;
+  $("modalPoster").innerHTML=posterMarkup(item);
+  $("modalTitle").textContent=item.title;
+  $("modalCategory").textContent=item.category.toUpperCase();
+  $("modalMeta").textContent=[item.year,item.genre].filter(Boolean).join(" • ");
+  $("modalDescription").textContent=item.description||"Add a description in the catalog setup to show details here.";
+  $("modalPlay").onclick=()=>enterPlayer(item);
+  $("detailsModal").classList.add("show");
+  playTone(560,.05);
+}
+
+function closeModal(){
+  $("detailsModal").classList.remove("show");
+}
+
+function enterPlayer(item){
+  closeModal();
+  if(!item.video){
+    toast("A playback source hasn't been added for this title yet.");
+    return;
+  }
+
+  const stage=$("playerStage");
+  stage.innerHTML="";
+  $("playerTitle").textContent=item.title;
+
+  if(item.type==="video"){
+    const video=document.createElement("video");
+    video.controls=true;
+    video.autoplay=true;
+    video.playsInline=true;
+    video.src=item.video;
+
+    const saved=Number(localStorage.getItem("luma-progress-"+item.id)||0);
+
+    video.addEventListener("loadedmetadata",()=>{
+      if(saved>0&&saved<video.duration-5)video.currentTime=saved;
+    });
+
+    video.addEventListener("timeupdate",()=>{
+      if(video.duration&&Number.isFinite(video.duration)){
+        localStorage.setItem("luma-progress-"+item.id,String(video.currentTime));
+      }
+    });
+
+    video.addEventListener("ended",()=>{
+      localStorage.removeItem("luma-progress-"+item.id);
+    });
+
+    stage.appendChild(video);
+    currentItem=item;
+  }else{
+    const frame=document.createElement("iframe");
+    frame.src=item.video;
+    frame.allow="autoplay; fullscreen; picture-in-picture";
+    frame.allowFullscreen=true;
+    frame.referrerPolicy="strict-origin-when-cross-origin";
+    stage.appendChild(frame);
+  }
+
+  $("playerView").classList.add("show");
+  playTone(700,.08);
+}
+
+function exitPlayer(){
+  $("playerView").classList.remove("show");
+  $("playerStage").innerHTML="";
+  renderContinue();
+  playTone(400,.05);
+}
+
+function renderContinue(){
+  const progress=movieSlots.filter(x=>
+    x.video&&x.type==="video"&&
+    Number(localStorage.getItem("luma-progress-"+x.id)||0)>0
+  );
+
+  $("continueGrid").innerHTML=progress.length
+    ? progress.map(cardMarkup).join("")
+    : '<div class="empty">Your watch progress will appear here when you watch a supported direct-video source.</div>';
+}
+
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g,c=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  }[c]));
+}
+
+function escapeAttr(s){
+  return escapeHTML(s);
+}
+
+renderMovies();
+renderShows();
+renderContinue();
+
+/* Cursor glow and ambient particles */
+
+const glow=$("cursorGlow");
+
+window.addEventListener("pointermove",e=>{
+  glow.style.left=e.clientX+"px";
+  glow.style.top=e.clientY+"px";
+});
+
+const canvas=$("particles");
+const ctx=canvas.getContext("2d");
+let dots=[];
+
+function resizeCanvas(){
+  canvas.width=innerWidth*devicePixelRatio;
+  canvas.height=innerHeight*devicePixelRatio;
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+
+  dots=Array.from(
+    {length:Math.min(65,Math.floor(innerWidth/20))},
+    ()=>({
+      x:Math.random()*innerWidth,
+      y:Math.random()*innerHeight,
+      vx:(Math.random()-.5)*.22,
+      vy:(Math.random()-.5)*.22,
+      r:Math.random()*1.5+.4
+    })
+  );
+}
+
+function animate(){
+  ctx.clearRect(0,0,innerWidth,innerHeight);
+
+  for(const d of dots){
+    d.x+=d.vx;
+    d.y+=d.vy;
+
+    if(d.x<0||d.x>innerWidth)d.vx*=-1;
+    if(d.y<0||d.y>innerHeight)d.vy*=-1;
+
+    ctx.beginPath();
+    ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+    ctx.fillStyle="rgba(190,151,255,.48)";
+    ctx.fill();
+  }
+
+  requestAnimationFrame(animate);
+}
+
+addEventListener("resize",resizeCanvas);
+resizeCanvas();
+animate();
+
+</script>
+</body>
+</html>
